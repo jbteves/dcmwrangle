@@ -53,8 +53,10 @@ class dcmtable:
                     thesefiles.append(fnames[j])
                 seriesfiles.append(thesefiles)
                 thisname = seriesnames[indices[0]]
+                starttime = dcminfo[indices[0]].SeriesTime
                 uniquenames.append(thisname)
-                self.SeriesList.append(dcmseries(i, thisname, thesefiles))
+                self.SeriesList.append(dcmseries(i, thisname, thesefiles,
+                                       starttime))
         else:
             self = prevtable
             self.prevtable = prevtable
