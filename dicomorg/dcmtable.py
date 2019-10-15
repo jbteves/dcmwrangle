@@ -23,7 +23,7 @@ class dcmtable:
                                 'exist.')
             # Set known members: path and prevtable
             self.path = path
-            self.prevtable = None
+            self.prevtable = prevtable
             # Harvest dicom info
             dircontents = os.listdir(path)
             dcminfo = []
@@ -59,7 +59,7 @@ class dcmtable:
                 uniquenames.append(thisname)
                 self.SeriesList.append(dcmseries(i, thisname, thesefiles,
                                        starttime))
-        else:
+        elif prevtable:
             self.seriesnumbers = copy(prevtable.seriesnumbers)
             self.SeriesList = []
             for o in prevtable.SeriesList:
@@ -93,6 +93,7 @@ class dcmtable:
             newtable.SeriesList[i].ignore()
         return newtable
     def alias(self, aliasinstructions):
+        newtable = dcmtable(prevtable=self)
         aliaswords = aliasinstructions.split(' ')
         if len(aliaswords) % 2 != 0:
             raise Exception('Alias indices are not paired with aliases.')
@@ -108,11 +109,12 @@ class dcmtable:
             aliases.append(aliaswords[i*2+1])
         for i in range(len(idxtoalias)):
             iscontained = False
-            for j in range(len(self.seriesnumbers)):
-                if str(idxtoalias[i]) == str(self.seriesnumbers[j]):
-                    aliasedseries = self.SeriesList[j]
+            for j in range(len(newtable.seriesnumbers)):
+                if str(idxtoalias[i]) == str(newtable.seriesnumbers[j]):
+                    aliasedseries = newtable.SeriesList[j]
                     aliasedseries.set_alias(aliases[i])
                     iscontained = True
             if not iscontained:
                 raise Exception('Given index ' + str(idxtoalias[i]) + 
                                 ' is not in range.')
+        return newtable
