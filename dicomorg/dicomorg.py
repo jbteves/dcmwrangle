@@ -25,14 +25,17 @@ while True:
     if userinput == 'i':
         userinput = input('>> ')
         inputvalues = userinput.split(' ')
-        thistable.ignore(inputvalues)
+        thistable = thistable.ignore(inputvalues)
         print(thistable)
     elif userinput == 'h':
         print(HELPTEXT)
     elif userinput == 'q':
         break
     elif userinput == 'a':
-        thistable.alias(input('>> '))
+        thistable = thistable.alias(input('>> '))
+        print(thistable)
+    elif userinput == 'u':
+        thistable = thistable.prevtable
         print(thistable)
     else:
         print('Unrecognized command ' + userinput)

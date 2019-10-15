@@ -86,6 +86,8 @@ class dcmseries:
         A string of the start time
         """
         return copy.copy(self.start)
+    def get_alias(self):
+        return copy.copy(self.alias)
     def is_ignorable(self):
         """Returns whether the series is ignorable
 

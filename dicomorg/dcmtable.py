@@ -60,7 +60,14 @@ class dcmtable:
                 self.SeriesList.append(dcmseries(i, thisname, thesefiles,
                                        starttime))
         else:
-            self = copy(prevtable)
+            self.seriesnumbers = copy(prevtable.seriesnumbers)
+            self.SeriesList = []
+            for o in prevtable.SeriesList:
+                self.SeriesList.append(dcmseries(o.get_seriesnumber(),
+                                                 o.get_seriesname(),
+                                                 o.get_files(),
+                                                 o.get_start()))
+                self.SeriesList[-1].set_alias(o.get_alias())
             self.prevtable = prevtable
     def __str__(self):
         retstr = ''
@@ -70,11 +77,12 @@ class dcmtable:
             retstr += str(s) + '\n'
         return retstr
     def ignore(self, toignore):
+        newtable = dcmtable(prevtable=self)
         idxtoignore = []
         for ignorable in toignore:
             ispresent = False
-            for i in range(len(self.seriesnumbers)):
-                number = str(self.seriesnumbers[i])
+            for i in range(len(newtable.seriesnumbers)):
+                number = str(newtable.seriesnumbers[i])
                 if ignorable == number:
                     ispresent = True
                     idxtoignore.append(i)
@@ -82,7 +90,8 @@ class dcmtable:
             if not ispresent:
                 raise Exception(ignorable + 'is not present in the table.')
         for i in idxtoignore:
-            self.SeriesList[i].ignore()
+            newtable.SeriesList[i].ignore()
+        return newtable
     def alias(self, aliasinstructions):
         aliaswords = aliasinstructions.split(' ')
         if len(aliaswords) % 2 != 0:
