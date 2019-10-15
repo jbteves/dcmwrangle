@@ -8,9 +8,14 @@ args = parser.parse_args()
 thistable = dcmtable.dcmtable(args.location)
 print(thistable)
 
-DCMINSTRUCTIONS = 'Please type (i)gnore, (h)elp, or (q)uit.'
+DCMINSTRUCTIONS = 'Please type (i)gnore, (a)lias, (h)elp, or (q)uit.'
 HELPTEXT = ('Use ignore to remove certain series numbers from the table. '
-            'Enter the numbers as space-delimited lists, e.g., 1 2 3')
+            'Enter the numbers as space-delimited lists, e.g.,\n'
+            '1 2 3\n'
+            'Use alias to set a certain series number to have an '
+            'alternative name. Enter the numbers of the series followed by '
+            'your preffered aliases, e.g.,\n'
+            '10 myalias 11 otheralias\n')
 
 print(DCMINSTRUCTIONS)
 userinput = ''
