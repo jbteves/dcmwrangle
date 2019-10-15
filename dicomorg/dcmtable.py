@@ -85,7 +85,6 @@ class dcmtable:
             self.SeriesList[i].ignore()
     def alias(self, aliasinstructions):
         aliaswords = aliasinstructions.split(' ')
-        print(aliaswords)
         if len(aliaswords) % 2 != 0:
             raise Exception('Alias indices are not paired with aliases.')
         idxtoalias = []
