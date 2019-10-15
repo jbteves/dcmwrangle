@@ -26,16 +26,25 @@ while True:
         userinput = input('>> ')
         inputvalues = userinput.split(' ')
         thistable = thistable.ignore(inputvalues)
-        print(thistable)
     elif userinput == 'h':
         print(HELPTEXT)
+        continue
     elif userinput == 'q':
         break
     elif userinput == 'a':
         thistable = thistable.alias(input('>> '))
-        print(thistable)
     elif userinput == 'u':
-        thistable = thistable.prevtable
-        print(thistable)
+        if thistable.prevtable:
+            tempstate = thistable.copy()
+            thistable = thistable.prevtable
+            thistable.nexttable = tempstate.copy()
+        else:
+            print('No changes to undo')
+    elif userinput == 'r':
+        if thistable.nexttable:
+            thistable = thistable.nexttable
+        else:
+            print('No changes to redo')
     else:
         print('Unrecognized command ' + userinput)
+    print(thistable)

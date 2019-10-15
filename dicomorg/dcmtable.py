@@ -12,7 +12,7 @@ import pydicom
 from dcmseries import dcmseries
 
 class dcmtable:
-    def __init__(self, path=None, prevtable=None):
+    def __init__(self, path=None, prevtable=None, nexttable=None):
         if (not path and not prevtable):
             raise Exception('You must provide a location to read dicoms '
                             'or a previous table to link to.')
@@ -59,6 +59,18 @@ class dcmtable:
                 uniquenames.append(thisname)
                 self.SeriesList.append(dcmseries(i, thisname, thesefiles,
                                        starttime))
+        elif nexttable:
+            self.seriesnumbers = copy(nexttable.seriesnumbers)
+            self.seriesnumbers = copy(nexttable.seriesnumbers)
+            self.SeriesList = []
+            for o in nexttable.SeriesList:
+                self.SeriesList.append(dcmseries(o.get_seriesnumber(),
+                                                 o.get_seriesname(),
+                                                 o.get_files(),
+                                                 o.get_start()))
+                self.SeriesList[-1].set_alias(o.get_alias())
+            self.nexttable = nexttable
+            self.prevtable = prevtable
         elif prevtable:
             self.seriesnumbers = copy(prevtable.seriesnumbers)
             self.SeriesList = []
@@ -78,6 +90,7 @@ class dcmtable:
         return retstr
     def ignore(self, toignore):
         newtable = dcmtable(prevtable=self)
+        newtable.nexttable = None
         idxtoignore = []
         for ignorable in toignore:
             ispresent = False
@@ -94,6 +107,7 @@ class dcmtable:
         return newtable
     def alias(self, aliasinstructions):
         newtable = dcmtable(prevtable=self)
+        newtable.nexttable = None
         aliaswords = aliasinstructions.split(' ')
         if len(aliaswords) % 2 != 0:
             raise Exception('Alias indices are not paired with aliases.')
@@ -117,4 +131,18 @@ class dcmtable:
             if not iscontained:
                 raise Exception('Given index ' + str(idxtoalias[i]) + 
                                 ' is not in range.')
+        return newtable
+    def copy(self):
+        newtable = dcmtable(prevtable=self)
+        newtable.seriesnumbers = copy(self.seriesnumbers)
+        newtable.seriesnumbers = copy(self.seriesnumbers)
+        newtable.SeriesList = []
+        for o in self.SeriesList:
+            newtable.SeriesList.append(dcmseries(o.get_seriesnumber(),
+                                             o.get_seriesname(),
+                                             o.get_files(),
+                                             o.get_start()))
+            newtable.SeriesList[-1].set_alias(o.get_alias())
+        newtable.nexttable = self.nexttable
+        newtable.prevtable = self.prevtable
         return newtable
