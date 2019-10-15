@@ -7,6 +7,7 @@ Simple class to facilitate series information organization
 
 import pydicom
 import os.path as op
+import copy
 
 class dcmseries:
     def __init__(self, seriesnumber, seriesname, files, start):
@@ -28,6 +29,7 @@ class dcmseries:
         # Set the basics
         self.seriesnumber = seriesnumber
         self.seriesname = seriesname
+        self.alias = None
 
         # Check all files for existence
         for f in files:
@@ -43,3 +45,48 @@ class dcmseries:
                                               self.seriesname,
                                               self.start,
                                               len(self.files))
+    def ignore(self):
+        """Makes this dicom series ignored in printing"""
+        self.alias = ''
+    def alias(self, alias):
+        self.alias = alias
+    def get_seriesnumber(self):
+        """Returns the series number
+
+        Returns
+        -------
+        The series number
+        """
+        return self.seriesnumber
+    def get_seriesname(self):
+        """Returns the series description/name as it is in the header
+
+        Returns
+        -------
+        The series name
+        """
+        return copy.copy(self.seriesname)
+    def get_files(self):
+        """Returns the filenames in the series
+
+        Returns
+        -------
+        A copy of the series files
+        """
+        return copy.copy(self.files)
+    def get_start(self):
+        """Returns the start time of the series as defined in the header
+
+        Returns
+        -------
+        A string of the start time
+        """
+        return copy.copy(self.start)
+    def is_ignorable(self):
+        """Returns whether the series is ignorable
+
+        Returns
+        -------
+        Whether the series is ignorable
+        """
+        return self.alias == ''

@@ -7,6 +7,7 @@ Class for making a table of dicom series
 
 import os
 import os.path as op
+from copy import copy
 import pydicom
 from dcmseries import dcmseries
 
@@ -41,7 +42,8 @@ class dcmtable:
                 seriesnumbers.append(dcm.SeriesNumber)
                 seriesnames.append(dcm.SeriesDescription)
             # Use series numbers to group files
-            uniquenumbers = set(seriesnumbers)
+            uniquenumbers = list(set(seriesnumbers))
+            self.seriesnumbers = uniquenumbers
             seriesfiles = []
             uniquenames = []
             self.SeriesList = []
@@ -58,10 +60,26 @@ class dcmtable:
                 self.SeriesList.append(dcmseries(i, thisname, thesefiles,
                                        starttime))
         else:
-            self = prevtable
+            self = copy(prevtable)
             self.prevtable = prevtable
     def __str__(self):
         retstr = ''
         for s in self.SeriesList:
+            if s.is_ignorable():
+                continue
             retstr += str(s) + '\n'
         return retstr
+    def ignore(self, toignore):
+        idxtoignore = []
+        for ignorable in toignore:
+            ispresent = False
+            for i in range(len(self.seriesnumbers)):
+                number = str(self.seriesnumbers[i])
+                if ignorable == number:
+                    ispresent = True
+                    idxtoignore.append(i)
+                    break
+            if not ispresent:
+                raise Exception(ignorable + 'is not present in the table.')
+        for i in idxtoignore:
+            self.SeriesList[i].ignore()
