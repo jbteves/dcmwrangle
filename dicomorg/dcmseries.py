@@ -41,14 +41,20 @@ class dcmseries:
     def __str__(self):
         """String representation of the dcmseries
         """
-        return '{:3d}\t{:30s}\t{:20s}\t{:5d}'.format(self.seriesnumber,
-                                              self.seriesname,
-                                              self.start,
-                                              len(self.files))
+        if self.alias:
+            return '{:3d}\t{:30s}\t{:20s}\t{:5d}'.format(self.seriesnumber,
+                                                  self.alias,
+                                                  self.start,
+                                                  len(self.files))
+        else:
+            return '{:3d}\t{:30s}\t{:20s}\t{:5d}'.format(self.seriesnumber,
+                                                  self.seriesname,
+                                                  self.start,
+                                                  len(self.files))
     def ignore(self):
         """Makes this dicom series ignored in printing"""
         self.alias = ''
-    def alias(self, alias):
+    def set_alias(self, alias):
         self.alias = alias
     def get_seriesnumber(self):
         """Returns the series number
@@ -76,8 +82,6 @@ class dcmseries:
         return copy.copy(self.files)
     def get_start(self):
         """Returns the start time of the series as defined in the header
-
-        Returns
         -------
         A string of the start time
         """

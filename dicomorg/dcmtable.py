@@ -83,3 +83,28 @@ class dcmtable:
                 raise Exception(ignorable + 'is not present in the table.')
         for i in idxtoignore:
             self.SeriesList[i].ignore()
+    def alias(self, aliasinstructions):
+        aliaswords = aliasinstructions.split(' ')
+        print(aliaswords)
+        if len(aliaswords) % 2 != 0:
+            raise Exception('Alias indices are not paired with aliases.')
+        idxtoalias = []
+        aliases = []
+        for i in range(round(len(aliaswords)/2)):
+            try:
+                series_to_alias = int(aliaswords[i*2])
+                idxtoalias.append(series_to_alias)
+            except:
+                raise Exception(aliaswords[i] + ' cannot be converted to '
+                                'a series number.')
+            aliases.append(aliaswords[i*2+1])
+        for i in range(len(idxtoalias)):
+            iscontained = False
+            for j in range(len(self.seriesnumbers)):
+                if str(idxtoalias[i]) == str(self.seriesnumbers[j]):
+                    aliasedseries = self.SeriesList[j]
+                    aliasedseries.set_alias(aliases[i])
+                    iscontained = True
+            if not iscontained:
+                raise Exception('Given index ' + str(idxtoalias[i]) + 
+                                ' is not in range.')

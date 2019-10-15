@@ -26,5 +26,8 @@ while True:
         print(HELPTEXT)
     elif userinput == 'q':
         break
+    elif userinput == 'a':
+        thistable.alias(input('>> '))
+        print(thistable)
     else:
         print('Unrecognized command ' + userinput)
