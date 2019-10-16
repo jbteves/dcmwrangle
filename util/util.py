@@ -58,7 +58,6 @@ class dcmtable:
                 thisname = seriesnames[indices[0]]
                 starttime = dcminfo[indices[0]].SeriesTime
                 uniquenames.append(thisname)
-                print(dcmseries)
                 self.SeriesList.append(dcmseries(i, thisname, thesefiles,
                                        starttime))
         elif nexttable:
