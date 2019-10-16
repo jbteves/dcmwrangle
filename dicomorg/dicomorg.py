@@ -1,3 +1,5 @@
+import os.path as op
+import readline
 import dcmtable
 import argparse
 
@@ -8,14 +10,22 @@ args = parser.parse_args()
 thistable = dcmtable.dcmtable(args.location)
 print(thistable)
 
-DCMINSTRUCTIONS = 'Please type (i)gnore, (a)lias, (h)elp, or (q)uit.'
+DCMINSTRUCTIONS = ('Please type (i)gnore, (a)lias, (u)ndo, (r)edo, '
+                   '(c)onvert, '
+                   '(h)elp, or (q)uit.')
 HELPTEXT = ('Use ignore to remove certain series numbers from the table. '
             'Enter the numbers as space-delimited lists, e.g.,\n'
             '1 2 3\n'
             'Use alias to set a certain series number to have an '
             'alternative name. Enter the numbers of the series followed by '
             'your preffered aliases, e.g.,\n'
-            '10 myalias 11 otheralias\n')
+            '10 myalias 11 otheralias\n'
+            'Undo will undo your latest change and restore the table to '
+            'its previous state.\n'
+            'Redo will redo your latest undo and restore the table to '
+            'its future state. Note that using an ignore or alias command '
+            'will prohibit you from using redo do due its simple '
+            'implementation.\n')
 
 print(DCMINSTRUCTIONS)
 userinput = ''
@@ -45,6 +55,14 @@ while True:
             thistable = thistable.nexttable
         else:
             print('No changes to redo')
+    elif userinput == 'c':
+        print('Enter output destination (leave blank for in-place)')
+        niidest = op.expanduser(input('<<'))
+        if niidest == '':
+            thistable.convert()
+        else:
+            thistable.convert(niidest)
+        print('Converted successfully!')
     else:
         print('Unrecognized command ' + userinput)
     print(thistable)

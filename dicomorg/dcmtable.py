@@ -7,7 +7,9 @@ Class for making a table of dicom series
 
 import os
 import os.path as op
+import shutil
 from copy import copy
+import subprocess
 import pydicom
 from dcmseries import dcmseries
 
@@ -71,6 +73,7 @@ class dcmtable:
                 self.SeriesList[-1].set_alias(o.get_alias())
             self.nexttable = nexttable
             self.prevtable = prevtable
+            self.path = copy(nexttable.path)
         elif prevtable:
             self.seriesnumbers = copy(prevtable.seriesnumbers)
             self.SeriesList = []
@@ -81,6 +84,7 @@ class dcmtable:
                                                  o.get_start()))
                 self.SeriesList[-1].set_alias(o.get_alias())
             self.prevtable = prevtable
+            self.path = copy(prevtable.path)
     def __str__(self):
         retstr = ''
         for s in self.SeriesList:
@@ -134,6 +138,7 @@ class dcmtable:
         return newtable
     def copy(self):
         newtable = dcmtable(prevtable=self)
+        newtable.path = copy(self.path)
         newtable.seriesnumbers = copy(self.seriesnumbers)
         newtable.seriesnumbers = copy(self.seriesnumbers)
         newtable.SeriesList = []
@@ -146,3 +151,33 @@ class dcmtable:
         newtable.nexttable = self.nexttable
         newtable.prevtable = self.prevtable
         return newtable
+    def convert(self, outpath=None):
+        if not outpath:
+            outpath = self.path
+        for s in self.SeriesList:
+            if s.is_ignorable():
+                continue
+            to_copy = s.get_files()
+            if s.get_alias():
+                fname = s.get_alias()
+            else:
+                fname = s.get_seriesname()
+            orgdicom = op.join(self.path, fname)
+
+            if not op.exists(orgdicom):
+                os.mkdir(orgdicom)
+            for f in to_copy:
+                shutil.copyfile(f, op.join(orgdicom, op.basename(f)))
+
+            if not op.exists(outpath):
+                try:
+                    os.mkdir(outpath)
+                except OSError:
+                    raise Exception('Could not make a directory')
+
+            dcm2niix_args = ['dcm2niix', '-o', outpath, '-f',
+                             fname, orgdicom]
+            completion = subprocess.run(dcm2niix_args, 
+                                        stdout=subprocess.DEVNULL)
+            if completion.returncode != 0:
+                raise Exception('dcm2niix failed')
