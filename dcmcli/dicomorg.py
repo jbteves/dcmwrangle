@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import os
 import os.path as op
 import readline
 from util.util import dcmtable, dcmseries
@@ -9,6 +10,10 @@ def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('location', help='location of dicoms to sort out')
     args = parser.parse_args()
+
+    args.location = op.expanduser(args.location)
+    if args.location[0] != '/':
+        args.location = op.join(os.getcwd(), args.location)
 
     thistable = dcmtable(args.location)
     print(thistable)
@@ -65,6 +70,8 @@ def main():
         elif userinput == 'c':
             print('Enter output destination (leave blank for in-place)')
             niidest = op.expanduser(input('<<'))
+            if niidest[0] != '/':
+                niidest = op.join(os.getcwd(), niidest)
             if niidest == '':
                 thistable.convert()
             else:
