@@ -70,7 +70,7 @@ def main():
                 print('No changes to redo')
         elif userinput == 'c':
             print('Enter output destination (leave blank for in-place)')
-            niidest = op.abspath(op.expanduser(input('<<')))
+            niidest = op.abspath(op.expanduser(input('>> ')))
             if niidest == '':
                 thistable.convert()
             else:
