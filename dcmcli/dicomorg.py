@@ -8,18 +8,17 @@ import argparse
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('location', help='location of dicoms to sort out')
+    parser.add_argument('-i', '--location', help='location of dicoms to sort out',
+                        default=os.getcwd())
     args = parser.parse_args()
 
-    args.location = op.expanduser(args.location)
-    if args.location[0] != '/':
-        args.location = op.join(os.getcwd(), args.location)
+    args.location = op.abspath(args.location)
 
     thistable = dcmtable(args.location)
     print(thistable)
 
     DCMINSTRUCTIONS = ('Please type (i)gnore, (a)lias, (u)ndo, (r)edo, '
-                       '(c)onvert, '
+                       '(c)onvert, change (p)ath,'
                        '(h)elp, or (q)uit.')
     HELPTEXT = ('Use ignore to remove certain series numbers from the '
                 'table. '
@@ -37,7 +36,9 @@ def main():
                 'its future state. Note that using an ignore or alias '
                 'command '
                 'will prohibit you from using redo do due its simple '
-                'implementation.\n')
+                'implementation.\n'
+                'Changing path will dump the current table and read a new '
+                'path, creating a new table.\n')
 
     print(DCMINSTRUCTIONS)
     userinput = ''
@@ -69,14 +70,19 @@ def main():
                 print('No changes to redo')
         elif userinput == 'c':
             print('Enter output destination (leave blank for in-place)')
-            niidest = op.expanduser(input('<<'))
-            if niidest[0] != '/':
-                niidest = op.join(os.getcwd(), niidest)
+            niidest = op.abspath(op.expanduser(input('<<')))
             if niidest == '':
                 thistable.convert()
             else:
                 thistable.convert(niidest)
             print('Converted successfully!')
+        elif userinput == 'p':
+            print('Enter new reading path. WARNING: purges current table.')
+            newdcmpath = op.abspath(op.expanduser(input('>> ')))
+            if not op.exists(newdcmpath):
+                print('Given path ' + newdcmpath + ' does not exist!')
+                continue
+            thistable = dcmtable(newdcmpath)
         else:
             print('Unrecognized command ' + userinput)
         print(thistable)
