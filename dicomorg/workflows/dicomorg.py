@@ -59,8 +59,13 @@ def dicomorg(path, template=None):
     userinput = ''
 
     while True:
-        print(thistable)
-        userinput = input('>> ')
+        if thistable.isempty():
+            print('This directory does not have dicoms.'
+                  'Please enter a new path.')
+            userinput = 'p'
+        else:
+            print(thistable)
+            userinput = input('>> ')
         if userinput == 'i':
             userinput = input('>> ')
             inputvalues = userinput.split(' ')
@@ -102,7 +107,9 @@ def dicomorg(path, template=None):
                 thistable.convert(niidest)
             print('Converted successfully!')
         elif userinput == 'p':
-            print('Enter new reading path. WARNING: purges current table.')
+            print('Enter new reading path.')
+            if not thistable.isempty():
+                print('WARNING: purges current table.')
             newdcmpath = op.abspath(op.expanduser(input('>> ')))
             if not op.exists(newdcmpath):
                 print('Given path ' + newdcmpath + ' does not exist!')

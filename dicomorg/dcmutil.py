@@ -89,6 +89,8 @@ class dcmtable:
                 continue
             retstr += str(s) + '\n'
         return retstr
+    def isempty(self):
+        return len(self.SeriesList) == 0
     def ignore(self, toignore):
         newtable = dcmtable(prevtable=self)
         newtable.nexttable = None
