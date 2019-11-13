@@ -26,47 +26,61 @@ def dicomorg(path, template=None):
     if template:
         print('Feature unavailable right now')
     thistable = dcmtable(path)
-    print(thistable)
-
     DCMINSTRUCTIONS = ('Please type (i)gnore, (a)lias, (u)ndo, (r)edo, '
-                       '(c)onvert, change (p)ath,'
+                       '(c)onvert, change (p)ath, '
                        '(h)elp, or (q)uit.')
-    HELPTEXT = ('Use ignore to remove certain series numbers from the '
-                'table. '
-                'Enter the numbers as space-delimited lists, e.g.,\n'
-                '1 2 3\n'
-                'Use alias to set a certain series number to have an '
-                'alternative name. Enter the numbers of the series '
-                'followed by '
-                'your preffered aliases, e.g.,\n'
-                '10 myalias 11 otheralias\n'
-                'Undo will undo your latest change and restore the table '
+    IGNTEXT = ('Use ignore to remove certain series numbers from the '
+               'table. '
+               'Enter the numbers as space-delimited lists, e.g.,\n'
+               '1 2 3\n')
+
+    ALIASTEXT = ('Use alias to set a certain series number to have an '
+                 'alternative name. Enter the numbers of the series '
+                 'followed by '
+                 'your preffered aliases, e.g.,\n'
+                 '10 myalias 11 otheralias\n')
+
+    UNDOTEXT = ('Undo will undo your latest change and restore the table '
                 'to '
-                'its previous state.\n'
-                'Redo will redo your latest undo and restore the table to '
+                'its previous state.\n')
+
+    REDOTEXT = ('Redo will redo your latest undo and restore the table to '
                 'its future state. Note that using an ignore or alias '
                 'command '
                 'will prohibit you from using redo do due its simple '
-                'implementation.\n'
-                'Changing path will dump the current table and read a new '
+                'implementation.\n')
+
+    PATHTEXT = ('Changing path will dump the current table and read a new '
                 'path, creating a new table.\n')
 
+    HELPTEXT = (IGNTEXT + ALIASTEXT + UNDOTEXT + REDOTEXT + PATHTEXT)
+                
     print(DCMINSTRUCTIONS)
     userinput = ''
 
     while True:
+        print(thistable)
         userinput = input('>> ')
         if userinput == 'i':
             userinput = input('>> ')
             inputvalues = userinput.split(' ')
-            thistable = thistable.ignore(inputvalues)
+            try:
+                thistable = thistable.ignore(inputvalues)
+            except:
+                print('Ignore attempt failed; try again, help text below')
+                print(IGNTEXT)
         elif userinput == 'h':
             print(HELPTEXT)
             continue
         elif userinput == 'q':
             break
         elif userinput == 'a':
-            thistable = thistable.alias(input('>> '))
+            userinput = input('>> ')
+            try:
+                thistable = thistable.alias(userinput)
+            except:
+                print('Aliasing attempt failed; try again, help text below')
+                print(ALIASTEXT)
         elif userinput == 'u':
             if thistable.prevtable:
                 tempstate = thistable.copy()
@@ -96,7 +110,6 @@ def dicomorg(path, template=None):
             thistable = dcmtable(newdcmpath)
         else:
             print('Unrecognized command ' + userinput)
-        print(thistable)
 
 if __name__ =='__main__':
     main()

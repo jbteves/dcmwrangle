@@ -57,6 +57,7 @@ class dcmtable:
                 uniquenames.append(thisname)
                 self.SeriesList.append(dcmseries(i, thisname, thesefiles,
                                        starttime))
+            self.nexttable = None
         elif nexttable:
             self.seriesnumbers = copy(nexttable.seriesnumbers)
             self.seriesnumbers = copy(nexttable.seriesnumbers)
