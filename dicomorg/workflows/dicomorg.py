@@ -3,18 +3,29 @@
 import os
 import os.path as op
 import readline
-from util.util import dcmtable, dcmseries
+from dicomorg import dcmutil
+# Aliases; this isn't pythonic but their module documentation is confusing
+dcmseries = dcmutil.dcmseries
+dcmtable = dcmutil.dcmtable
 import argparse
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument('-i', '--location', help='location of dicoms to sort out',
+    parser.add_argument('-i', '--location',
+                        help='location of dicoms to sort out',
                         default=os.getcwd())
+    parser.add_argument('-t', '--template',
+                        help='template to use to sort the dicoms',
+                        default=None)
     args = parser.parse_args()
+    location = op.abspath(args.location)
+    dicomorg(location, template=args.template)
 
-    args.location = op.abspath(args.location)
 
-    thistable = dcmtable(args.location)
+def dicomorg(path, template=None):
+    if template:
+        print('Feature unavailable right now')
+    thistable = dcmtable(path)
     print(thistable)
 
     DCMINSTRUCTIONS = ('Please type (i)gnore, (a)lias, (u)ndo, (r)edo, '

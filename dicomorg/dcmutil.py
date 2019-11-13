@@ -1,9 +1,6 @@
 #/usr/bin/env python
 # -*- coding : utf-8 -*-
 
-"""
-Class for making a table of dicom series
-"""
 
 import os
 import os.path as op
@@ -180,17 +177,9 @@ class dcmtable:
                                         stdout=subprocess.DEVNULL)
             if completion.returncode != 0:
                 raise Exception('dcm2niix failed')
-#!/usr/bin/env python
-# -*- coding : utf-8 -*-
-
-"""
-Simple class to facilitate series information organization
-"""
-
 class dcmseries:
     def __init__(self, seriesnumber, seriesname, files, start):
         """Constructor for dcmseries
-
         Parameters
         ----------
         self
@@ -236,7 +225,6 @@ class dcmseries:
         self.alias = alias
     def get_seriesnumber(self):
         """Returns the series number
-
         Returns
         -------
         The series number
@@ -244,7 +232,6 @@ class dcmseries:
         return self.seriesnumber
     def get_seriesname(self):
         """Returns the series description/name as it is in the header
-
         Returns
         -------
         The series name
@@ -252,7 +239,6 @@ class dcmseries:
         return copy(self.seriesname)
     def get_files(self):
         """Returns the filenames in the series
-
         Returns
         -------
         A copy of the series files
@@ -268,7 +254,6 @@ class dcmseries:
         return copy(self.alias)
     def is_ignorable(self):
         """Returns whether the series is ignorable
-
         Returns
         -------
         Whether the series is ignorable
