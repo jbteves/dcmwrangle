@@ -8,56 +8,157 @@ import shutil
 from copy import copy
 import subprocess
 import pydicom
+from pydicom import dcmread
 
 class dcmtable:
-    def __init__(self, path=None, prevtable=None, nexttable=None):
-        if (not path and not prevtable):
-            raise Exception('You must provide a location to read dicoms '
-                            'or a previous table to link to.')
-        if path:
-            # Construct table from a location
-            if not op.exists(path):
-                raise Exception('Path to read dicoms into table does not '
-                                'exist.')
-            # Set known members: path and prevtable
-            self.path = path
-            self.prevtable = prevtable
-            # Harvest dicom info
-            dircontents = os.listdir(path)
-            dcminfo = []
-            fnames = []
-            for f in dircontents:
-                try:
-                    dcminfo.append(pydicom.dcmread(op.join(path, f),
-                                   stop_before_pixels=True))
-                    fnames.append(op.join(path, f))
-                except:
-                    pass
-            # Obtain series numbers and names
-            seriesnumbers = []
-            seriesnames = []
-            for dcm in dcminfo:
-                seriesnumbers.append(dcm.SeriesNumber)
-                seriesnames.append(dcm.SeriesDescription)
-            # Use series numbers to group files
-            uniquenumbers = list(set(seriesnumbers))
-            self.seriesnumbers = uniquenumbers
-            seriesfiles = []
-            uniquenames = []
-            self.SeriesList = []
-            for i in uniquenumbers:
-                indices = [j for j, x in enumerate(seriesnumbers)
-                           if x == i]
-                thesefiles = []
-                for j in indices:
-                    thesefiles.append(fnames[j])
-                seriesfiles.append(thesefiles)
-                thisname = seriesnames[indices[0]]
-                starttime = dcminfo[indices[0]].SeriesTime
-                uniquenames.append(thisname)
-                self.SeriesList.append(dcmseries(i, thisname, thesefiles,
-                                       starttime))
-            self.nexttable = None
+    """A table of all dicom files in a directory
+
+    Attributes
+    ----------
+    filemap : dict
+        A dict where each filename hashes to its header contents
+    filelist : list
+        A list where you can access files iteratively
+
+    Methods
+    -------
+    group_by_attribute
+        Returns a set containing all files which match an input attribute
+        and value.
+    get_header
+        Gets the dicom header for a given filename.
+   
+    Notes
+    -----
+    There is usually no reason to have both a dict and an array, however,
+    there are some cases where you might want to iterate and some cases
+    where you just have a file and want to inspect it. It is much faster
+    to access the dict in the latter case, at the expense of memory. This
+    class is NOT memory-friendly. 
+
+    Future idea: a list-only implementation to be lightweight,
+    dcmtable_light?
+    """
+
+
+    def __init__(self, path):
+        if not op.exists(path):
+            raise ValueError('Path to read dicoms from does not exist')
+        path = op.abspath(path)
+        pathcontents = os.listdir(path)
+        # Save the path for this table
+        self.tablepath = path
+        # Preallocate; for large datasets this improves runtime
+        self.filemap = dict.fromkeys(range(len(pathcontents)))
+        self.filelist = ['' for i in range(len(pathcontents))]
+        toremove = []
+
+        # Not all files are actually going to be dicoms, need to check
+        end_idx = 0
+        for i in range(len(pathcontents)):
+            f = op.join(self.tablepath, pathcontents[i])
+            try:
+                self.filemap[f] = dcmread(f, stop_before_pixels=True)
+                self.filelist[i] = f
+                end_idx += 1
+            except (IsADirectoryError, pydicom.errors.InvalidDicomError):
+                pass
+
+        # Slice out blank elements
+        self.filelist[:end_idx+1]
+    
+    
+    def get_header(self, fname):
+        """Returns the dicom header object for a given filename
+
+        Parameters
+        ----------
+        fname : string
+            The filename you'd like the header information for
+
+        Returns
+        -------
+        dicomheader : 
+        """
+        try:
+            return self.filemap[fname]
+        except KeyError:
+            return None
+
+    def group_by_attribute(self, attribute):
+        """Returns a list of a list of files and a list of names for
+        unique attributes.
+
+        Parameters
+        ----------
+        attribute : string
+            The attribute to group by
+
+        Returns
+        -------
+        file_groups : list
+            A list of filename lists. Indices correspond with
+            attribute_values.
+        unique_values : list
+            A list of values indicating the unique attribute names.
+            Indices correspond with filegroups
+        """
+        
+        attribute_values = ['' for i in self.filelist]
+        self._test_attributes(attribute)
+        for i in range(len(self.filelist)):
+            attribute_values[i] = getattr(self.filemap[self.filelist[i]],
+                                          attribute)
+
+        unique_values = list(set(attribute_values))
+        unique_values.sort()
+        file_groups = [[] for i in unique_values]
+        for i in range(len(self.filelist)):
+            f = self.filemap[self.filelist[i]]
+            for j in range(len(unique_values)):
+                v = unique_values[j]
+                if getattr(f, attribute) == v:
+                    file_groups[j].append(self.filelist[i])
+
+        return file_groups, unique_values
+
+
+    def group_by_value(self, attribute, attribute_value, subset=None):
+        relevant_files = ['' for x in self.filelist]
+        total_hits = 0
+
+        self._test_attributes(attribute)
+        # Harvest the attributes and values, populating the list
+        for i in range(len(self.filelist)):
+            f = self.filelist[i]
+            header = self.filemap[f]
+            this_value = getattr(header, attribute)
+            if this_value == attribute_value:
+                # Hit
+                relevant_files[total_hits] = f
+                total_hits += 1
+
+        # Slice off empty
+        relevant_files = relevant_files[:total_hits+1]
+
+        # Return the file group
+        return relevant_files
+
+
+    def _test_attributes(self, attribute):
+        try:
+            getattr(self.filemap[self.filelist[0]], attribute)
+        except:
+            raise ValueError('Dicom header does not contain attribute ' +
+                             attribute)
+
+        
+class seriestable:
+    """A table of all of the dcmseries in a directory"""
+
+    def __init__(self, pathtable, prevtable=None, nexttable=None):
+        if (not prevtable and not nexttable):
+            groups, numbers = pathtable.group_by_attribute('SeriesNumber')
         elif nexttable:
             self.seriesnumbers = copy(nexttable.seriesnumbers)
             self.seriesnumbers = copy(nexttable.seriesnumbers)
