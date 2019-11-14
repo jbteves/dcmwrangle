@@ -85,7 +85,7 @@ class dcmtable:
         except KeyError:
             return None
 
-    def group_by_attribute(self, attribute):
+    def group_by_attribute(self, attribute, subset=None):
         """Returns a list of a list of files and a list of names for
         unique attributes.
 
@@ -103,22 +103,27 @@ class dcmtable:
             A list of values indicating the unique attribute names.
             Indices correspond with filegroups
         """
-        
-        attribute_values = ['' for i in self.filelist]
+
+        if subset:
+            filelist = subset
+        else:
+            filelist = self.filelist
+
+        attribute_values = ['' for i in filelist]
         self._test_attributes(attribute)
-        for i in range(len(self.filelist)):
-            attribute_values[i] = getattr(self.filemap[self.filelist[i]],
+        for i in range(len(filelist)):
+            attribute_values[i] = getattr(self.filemap[filelist[i]],
                                           attribute)
 
         unique_values = list(set(attribute_values))
         unique_values.sort()
         file_groups = [[] for i in unique_values]
-        for i in range(len(self.filelist)):
-            f = self.filemap[self.filelist[i]]
+        for i in range(len(filelist)):
+            f = self.filemap[filelist[i]]
             for j in range(len(unique_values)):
                 v = unique_values[j]
                 if getattr(f, attribute) == v:
-                    file_groups[j].append(self.filelist[i])
+                    file_groups[j].append(filelist[i])
 
         return file_groups, unique_values
 
@@ -126,11 +131,15 @@ class dcmtable:
     def group_by_value(self, attribute, attribute_value, subset=None):
         relevant_files = ['' for x in self.filelist]
         total_hits = 0
+        if subset:
+            filelist = subset
+        else:
+            filelist = self.filelist
 
         self._test_attributes(attribute)
         # Harvest the attributes and values, populating the list
-        for i in range(len(self.filelist)):
-            f = self.filelist[i]
+        for i in range(len(filelist)):
+            f = filelist[i]
             header = self.filemap[f]
             this_value = getattr(header, attribute)
             if this_value == attribute_value:
