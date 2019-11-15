@@ -10,6 +10,7 @@ from copy import copy
 import subprocess
 import pydicom
 from pydicom import dcmread
+from .colors import *
 
 class dcmtable:
     """A table of all dicom files in a directory
