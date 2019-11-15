@@ -3,6 +3,7 @@
 import os
 import os.path as op
 import readline
+from copy import copy
 from dicomorg import dcmutil
 # Aliases; this isn't pythonic but modules are hard
 dcmseries = dcmutil.dcmseries
@@ -81,16 +82,12 @@ def dicomorg(path, template=None):
             break
         elif userinput == 'a':
             userinput = input('>> ')
-            try:
-                thistable = thistable.alias(userinput)
-            except:
-                print('Aliasing attempt failed; try again, help text below')
-                print(ALIASTEXT)
+            thistable = thistable.alias(userinput)
         elif userinput == 'u':
             if thistable.prevtable:
-                tempstate = thistable
-                thistable = thistable.prevtable
-                thistable.nexttable = tempstate
+                temptable = copy(thistable.prevtable)
+                temptable.nexttable = copy(thistable)
+                thistable = temptable
             else:
                 print('No changes to undo')
         elif userinput == 'r':

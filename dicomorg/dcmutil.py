@@ -5,6 +5,7 @@
 import os
 import os.path as op
 import shutil
+import copy
 from copy import copy
 import subprocess
 import pydicom
@@ -190,42 +191,22 @@ class dcmtable:
 
         
 class seriestable:
-    def __init__(self, pathtable, prevtable=None, nexttable=None):
-        if (not prevtable and not nexttable):
-            groups, _ = pathtable.group_by_attribute('SeriesNumber')
+    def __init__(self, pathtable, orig=None):
+        if orig:
+            self.pathtable = orig.pathtable
+            self.nexttable = copy(orig.nexttable)
+            self.prevtable = copy(orig.prevtable)
+            self.SeriesList = []
+            for s in orig.SeriesList:
+                self.SeriesList.append(copy(s))
+        else:
+            groups, numbers = pathtable.group_by_attribute('SeriesNumber')
             self.pathtable = pathtable
             self.SeriesList = [None for i in groups]
             self.nexttable = None
             self.prevtable = None
             for i in range(len(groups)):
                 self.SeriesList[i] = dcmseries(pathtable, groups[i])
-        elif nexttable:
-            self.pathtable = pathtable
-            self.SeriesList = []
-            for s in nexttable.SeriesList:
-                self.SeriesList.append(dcmseries(pathtable, 
-                                                 s.get_files(), s))
-            self.nexttable = nexttable
-            if self.prevtable:
-                self.prevtable = prevtable
-        else:
-            self.pathtable = pathtable
-            self.SeriesList = []
-            for s in prevtable.SeriesList:
-                self.SeriesList.append(dcmseries(pathtable,
-                                                 s.get_files(), s))
-                self.SeriesList[-1].set_alias(s.get_alias())
-            self.prevtable = prevtable
-    def __copy__(self):
-        newtable = type(self)
-        self.pathtable = copy.pathtable
-        self.SeriesList = []
-        for s in copy.SeriesList:
-            self.SeriesList.append(s)
-        self.nexttable = copy.nexttable
-        self.prevtable = copy.prevtable
-
-        return newtable
     def __str__(self):
         retstr = ''
         for s in self.SeriesList:
@@ -233,10 +214,14 @@ class seriestable:
                 continue
             retstr += str(s) + '\n'
         return retstr
+    def __copy__(self):
+        return seriestable(self.pathtable, orig=self)
+        
     def isempty(self):
         return len(self.SeriesList) == 0
     def ignore(self, toignore):
-        newtable = seriestable(self.pathtable, prevtable=self)
+        newtable = copy(self)
+        newtable.prevtable = copy(self)
         newtable.nexttable = None
         idxtoignore = []
         for ignorable in toignore:
@@ -248,12 +233,13 @@ class seriestable:
                     idxtoignore.append(i)
                     break
             if not ispresent:
-                raise Exception(ignorable + 'is not present in the table.')
+                raise Exception(ignorable + ' is not present in the table.')
         for i in idxtoignore:
             newtable.SeriesList[i].ignore()
         return newtable
     def alias(self, aliasinstructions):
-        newtable = seriestable(self.pathtable, prevtable=self)
+        newtable = copy(self)
+        newtable.prevtable = copy(self)
         newtable.nexttable = None
         aliaswords = aliasinstructions.split(' ')
         if len(aliaswords) % 2 != 0:
@@ -270,11 +256,12 @@ class seriestable:
             aliases.append(aliaswords[i*2+1])
         for i in range(len(idxtoalias)):
             iscontained = False
-            for j in range(len(newtable.seriesnumbers)):
-                if str(idxtoalias[i]) == str(newtable.seriesnumbers[j]):
+            for j in range(len(newtable.SeriesList)):
+                if idxtoalias[i] == newtable.SeriesList[j].get_number():
                     aliasedseries = newtable.SeriesList[j]
                     aliasedseries.set_alias(aliases[i])
                     iscontained = True
+                    break
             if not iscontained:
                 raise Exception('Given index ' + str(idxtoalias[i]) + 
                                 ' is not in range.')
@@ -311,7 +298,7 @@ class seriestable:
                 raise Exception('dcm2niix failed')
 
 class dcmseries:
-    def __init__(self, filetable, filegroup, tocopy=None):
+    def __init__(self, filetable, filegroup, orig=None):
         """Constructor for dcmseries
         Parameters
         ----------
@@ -322,24 +309,23 @@ class dcmseries:
         tocopy
             A series from which to copy information
         """
-        if tocopy:
-            self.name = tocopy.name
-            self.number = tocopy.number
-            self.start = tocopy.start
-            self.files = tocopy.files
-            self.alias = tocopy.alias
+        if orig:
+            self.name = orig.name
+            self.number = orig.number
+            self.start = orig.start
+            self.files = orig.files
+            self.alias = copy(orig.alias)
         else:
             header = filetable.access(filegroup[0])
             self.name = header.SeriesDescription
-            self.number = header.SeriesNumber
+            self.number = int(header.SeriesNumber)
             self.start = header.SeriesTime
             self.files = filegroup
             self.alias = None
 
-
     def __copy__(self):
         return dcmseries(None, None, self)
-        
+
 
     def __str__(self):
         """String representation of the dcmseries
