@@ -66,6 +66,10 @@ class dcmtable:
 
         # Slice out blank elements
         self.filelist[:end_idx+1]
+
+    def __str__(self):
+        return ('Path: ' + self.tablepath + '\n' + 
+                'Total files: ' + str(len(self.filelist)))
     
     
     def get_header(self, fname):
@@ -154,6 +158,29 @@ class dcmtable:
         return relevant_files
 
 
+    def access(self, fname):
+        """Return the Nifti header for any valid file
+        
+        Parameters
+        ----------
+        fname : string
+            The filename to get the header of
+
+        Returns
+        -------
+        The header for the file
+
+        Raises
+        ------
+        ValueError if the file isn't in the table
+        """
+        try:
+            header = self.filemap[fname]
+        except:
+            raise ValueError('File ' + fname + ' is not in the file table.')
+        return header
+
+
     def _test_attributes(self, attribute):
         try:
             getattr(self.filemap[self.filelist[0]], attribute)
@@ -163,35 +190,42 @@ class dcmtable:
 
         
 class seriestable:
-    """A table of all of the dcmseries in a directory"""
-
     def __init__(self, pathtable, prevtable=None, nexttable=None):
         if (not prevtable and not nexttable):
-            groups, numbers = pathtable.group_by_attribute('SeriesNumber')
+            groups, _ = pathtable.group_by_attribute('SeriesNumber')
+            self.pathtable = pathtable
+            self.SeriesList = [None for i in groups]
+            self.nexttable = None
+            self.prevtable = None
+            for i in range(len(groups)):
+                self.SeriesList[i] = dcmseries(pathtable, groups[i])
         elif nexttable:
-            self.seriesnumbers = copy(nexttable.seriesnumbers)
-            self.seriesnumbers = copy(nexttable.seriesnumbers)
+            self.pathtable = pathtable
             self.SeriesList = []
-            for o in nexttable.SeriesList:
-                self.SeriesList.append(dcmseries(o.get_seriesnumber(),
-                                                 o.get_seriesname(),
-                                                 o.get_files(),
-                                                 o.get_start()))
-                self.SeriesList[-1].set_alias(o.get_alias())
+            for s in nexttable.SeriesList:
+                self.SeriesList.append(dcmseries(pathtable, 
+                                                 s.get_files(), s))
             self.nexttable = nexttable
-            self.prevtable = prevtable
-            self.path = copy(nexttable.path)
-        elif prevtable:
-            self.seriesnumbers = copy(prevtable.seriesnumbers)
+            if self.prevtable:
+                self.prevtable = prevtable
+        else:
+            self.pathtable = pathtable
             self.SeriesList = []
-            for o in prevtable.SeriesList:
-                self.SeriesList.append(dcmseries(o.get_seriesnumber(),
-                                                 o.get_seriesname(),
-                                                 o.get_files(),
-                                                 o.get_start()))
-                self.SeriesList[-1].set_alias(o.get_alias())
+            for s in prevtable.SeriesList:
+                self.SeriesList.append(dcmseries(pathtable,
+                                                 s.get_files(), s))
+                self.SeriesList[-1].set_alias(s.get_alias())
             self.prevtable = prevtable
-            self.path = copy(prevtable.path)
+    def __copy__(self):
+        newtable = type(self)
+        self.pathtable = copy.pathtable
+        self.SeriesList = []
+        for s in copy.SeriesList:
+            self.SeriesList.append(s)
+        self.nexttable = copy.nexttable
+        self.prevtable = copy.prevtable
+
+        return newtable
     def __str__(self):
         retstr = ''
         for s in self.SeriesList:
@@ -202,13 +236,13 @@ class seriestable:
     def isempty(self):
         return len(self.SeriesList) == 0
     def ignore(self, toignore):
-        newtable = dcmtable(prevtable=self)
+        newtable = seriestable(self.pathtable, prevtable=self)
         newtable.nexttable = None
         idxtoignore = []
         for ignorable in toignore:
             ispresent = False
-            for i in range(len(newtable.seriesnumbers)):
-                number = str(newtable.seriesnumbers[i])
+            for i in range(len(newtable.SeriesList)):
+                number = str(newtable.SeriesList[i].get_number())
                 if ignorable == number:
                     ispresent = True
                     idxtoignore.append(i)
@@ -219,7 +253,7 @@ class seriestable:
             newtable.SeriesList[i].ignore()
         return newtable
     def alias(self, aliasinstructions):
-        newtable = dcmtable(prevtable=self)
+        newtable = seriestable(self.pathtable, prevtable=self)
         newtable.nexttable = None
         aliaswords = aliasinstructions.split(' ')
         if len(aliaswords) % 2 != 0:
@@ -244,21 +278,6 @@ class seriestable:
             if not iscontained:
                 raise Exception('Given index ' + str(idxtoalias[i]) + 
                                 ' is not in range.')
-        return newtable
-    def copy(self):
-        newtable = dcmtable(prevtable=self)
-        newtable.path = copy(self.path)
-        newtable.seriesnumbers = copy(self.seriesnumbers)
-        newtable.seriesnumbers = copy(self.seriesnumbers)
-        newtable.SeriesList = []
-        for o in self.SeriesList:
-            newtable.SeriesList.append(dcmseries(o.get_seriesnumber(),
-                                             o.get_seriesname(),
-                                             o.get_files(),
-                                             o.get_start()))
-            newtable.SeriesList[-1].set_alias(o.get_alias())
-        newtable.nexttable = self.nexttable
-        newtable.prevtable = self.prevtable
         return newtable
     def convert(self, outpath=None):
         if not outpath:
@@ -290,45 +309,49 @@ class seriestable:
                                         stdout=subprocess.DEVNULL)
             if completion.returncode != 0:
                 raise Exception('dcm2niix failed')
+
 class dcmseries:
-    def __init__(self, seriesnumber, seriesname, files, start):
+    def __init__(self, filetable, filegroup, tocopy=None):
         """Constructor for dcmseries
         Parameters
         ----------
-        self
-            The object itself
-        seriesnumber :obj: `int`
-            The series number of the dicom series
-        seriesname :obj: `str`
-            The series description of the dicom series
-        files (N x 1) `array`
-            An array of filenames
-        start :obj: `str`
-            A string indicating the series start time
+        filetable
+            The filetable for this series' path
+        filegroup (N x 1) `array`
+            An array of filenames that belong in this series
+        tocopy
+            A series from which to copy information
         """
-        # Set the basics
-        self.seriesnumber = seriesnumber
-        self.seriesname = seriesname
-        self.alias = None
+        if tocopy:
+            self.name = tocopy.name
+            self.number = tocopy.number
+            self.start = tocopy.start
+            self.files = tocopy.files
+            self.alias = tocopy.alias
+        else:
+            header = filetable.access(filegroup[0])
+            self.name = header.SeriesDescription
+            self.number = header.SeriesNumber
+            self.start = header.SeriesTime
+            self.files = filegroup
+            self.alias = None
 
-        # Check all files for existence
-        for f in files:
-            if not op.exists(f):
-                raise Exception('Cannot find or access file ' + f)
 
-        self.files = files
-        self.start = start
+    def __copy__(self):
+        return dcmseries(None, None, self)
+        
+
     def __str__(self):
         """String representation of the dcmseries
         """
         if self.alias:
-            return '{:3d}\t{:30s}\t{:20s}\t{:5d}'.format(self.seriesnumber,
+            return '{:3d}\t{:30s}\t{:20s}\t{:5d}'.format(self.number,
                                                   self.alias,
                                                   self.start,
                                                   len(self.files))
         else:
-            return '{:3d}\t{:30s}\t{:20s}\t{:5d}'.format(self.seriesnumber,
-                                                  self.seriesname,
+            return '{:3d}\t{:30s}\t{:20s}\t{:5d}'.format(self.number,
+                                                  self.name,
                                                   self.start,
                                                   len(self.files))
     def ignore(self):
@@ -336,20 +359,20 @@ class dcmseries:
         self.alias = ''
     def set_alias(self, alias):
         self.alias = alias
-    def get_seriesnumber(self):
+    def get_number(self):
         """Returns the series number
         Returns
         -------
         The series number
         """
-        return self.seriesnumber
-    def get_seriesname(self):
+        return self.number
+    def get_name(self):
         """Returns the series description/name as it is in the header
         Returns
         -------
         The series name
         """
-        return copy(self.seriesname)
+        return copy(self.name)
     def get_files(self):
         """Returns the filenames in the series
         Returns

@@ -4,9 +4,10 @@ import os
 import os.path as op
 import readline
 from dicomorg import dcmutil
-# Aliases; this isn't pythonic but their module documentation is confusing
+# Aliases; this isn't pythonic but modules are hard
 dcmseries = dcmutil.dcmseries
 dcmtable = dcmutil.dcmtable
+seriestable = dcmutil.seriestable
 import argparse
 
 def main():
@@ -25,7 +26,6 @@ def main():
 def dicomorg(path, template=None):
     if template:
         print('Feature unavailable right now')
-    thistable = dcmtable(path)
     DCMINSTRUCTIONS = ('Please type (i)gnore, (a)lias, (u)ndo, (r)edo, '
                        '(c)onvert, change (p)ath, '
                        '(h)elp, or (q)uit.')
@@ -54,9 +54,13 @@ def dicomorg(path, template=None):
                 'path, creating a new table.\n')
 
     HELPTEXT = (IGNTEXT + ALIASTEXT + UNDOTEXT + REDOTEXT + PATHTEXT)
-                
+
     print(DCMINSTRUCTIONS)
+    print('Loading data...')
     userinput = ''
+
+    currtable = dcmtable(path)
+    thistable = seriestable(currtable)
 
     while True:
         if thistable.isempty():
@@ -69,11 +73,7 @@ def dicomorg(path, template=None):
         if userinput == 'i':
             userinput = input('>> ')
             inputvalues = userinput.split(' ')
-            try:
-                thistable = thistable.ignore(inputvalues)
-            except:
-                print('Ignore attempt failed; try again, help text below')
-                print(IGNTEXT)
+            thistable = thistable.ignore(inputvalues)
         elif userinput == 'h':
             print(HELPTEXT)
             continue
@@ -88,9 +88,9 @@ def dicomorg(path, template=None):
                 print(ALIASTEXT)
         elif userinput == 'u':
             if thistable.prevtable:
-                tempstate = thistable.copy()
+                tempstate = thistable
                 thistable = thistable.prevtable
-                thistable.nexttable = tempstate.copy()
+                thistable.nexttable = tempstate
             else:
                 print('No changes to undo')
         elif userinput == 'r':
@@ -114,7 +114,14 @@ def dicomorg(path, template=None):
             if not op.exists(newdcmpath):
                 print('Given path ' + newdcmpath + ' does not exist!')
                 continue
-            thistable = dcmtable(newdcmpath)
+            currtable = dcmtable(newdcmpath)
+            thistable = seriestable(newdcmpath)
+        elif userinput == 'D':
+            # DUMP
+            print('DUMP')
+            print(currtable)
+            print(thistable)
+            print(path)
         else:
             print('Unrecognized command ' + userinput)
 
