@@ -315,6 +315,12 @@ class dcmseries:
             self.start = orig.start
             self.files = orig.files
             self.alias = copy(orig.alias)
+            if orig.me:
+                self.me = True
+                self.echo_groups = orig.echo_groups
+                self.echoes = orig.echoes
+            else:
+                self.me = False
         else:
             header = filetable.access(filegroup[0])
             self.name = header.SeriesDescription
@@ -322,6 +328,15 @@ class dcmseries:
             self.start = header.SeriesTime
             self.files = filegroup
             self.alias = None
+            # Determine if multi-echo
+            groups, echoes = filetable.group_by_attribute('EchoTime',
+                                                          filegroup)
+            if len(echoes) > 1:
+                self.echo_groups = groups
+                self.echoes = echoes
+                self.me = True
+            else:
+                self.me = False
 
     def __copy__(self):
         return dcmseries(None, None, self)
@@ -330,16 +345,18 @@ class dcmseries:
     def __str__(self):
         """String representation of the dcmseries
         """
-        if self.alias:
-            return '{:3d}\t{:30s}\t{:20s}\t{:5d}'.format(self.number,
-                                                  self.alias,
-                                                  self.start,
-                                                  len(self.files))
+        if self.me:
+            e = 'ME'
         else:
-            return '{:3d}\t{:30s}\t{:20s}\t{:5d}'.format(self.number,
-                                                  self.name,
-                                                  self.start,
-                                                  len(self.files))
+            e = 'SE'
+        style = '{:3d}\t{:35s}\t{:15s}\t{:5d}\t{:2s}'
+        if self.alias:
+            return style.format(self.number, self.alias, self.start,
+                                len(self.files), e)
+        else:
+            return style.format(self.number, self.name, self.start,
+                                len(self.files), e)
+
     def ignore(self):
         """Makes this dicom series ignored in printing"""
         self.alias = ''
@@ -381,3 +398,6 @@ class dcmseries:
         Whether the series is ignorable
         """
         return self.alias == ''
+    def is_me(self):
+        """Returns whether the series is multi-echo"""
+        return self.me
