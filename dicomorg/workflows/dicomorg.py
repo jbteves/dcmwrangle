@@ -4,18 +4,15 @@ import os
 import os.path as op
 import readline
 from copy import copy
-from dicomorg import dcmutil
+from dicomorg.dcmutil import *
+from dicomorg.colors import *
 # Aliases; this isn't pythonic but modules are hard
-dcmseries = dcmutil.dcmseries
-dcmtable = dcmutil.dcmtable
-seriestable = dcmutil.seriestable
 import argparse
 
 def main():
     parser = argparse.ArgumentParser()
     parser.add_argument('-i', '--location',
-                        help='location of dicoms to sort out',
-                        default=os.getcwd())
+                        help='location of dicoms to sort out')
     parser.add_argument('-t', '--template',
                         help='template to use to sort the dicoms',
                         default=None)
@@ -62,6 +59,7 @@ def dicomorg(path, template=None):
 
     currtable = dcmtable(path)
     thistable = seriestable(currtable)
+    print(currtable.tablepath)
 
     while True:
         if thistable.isempty():
@@ -97,28 +95,25 @@ def dicomorg(path, template=None):
                 print('No changes to redo')
         elif userinput == 'c':
             print('Enter output destination (leave blank for in-place)')
-            niidest = op.abspath(op.expanduser(input('>> ')))
-            if niidest == '':
+            niidest = input('>> ')
+            if niidest == None or len(niidest) == 0:
+                print('Sending to ' + path)
                 thistable.convert()
             else:
-                thistable.convert(niidest)
+                niidest = op.abspath(niidest)
+                print('Sending to ' + niidest)
+                thistable.convert(outpath=niidest)
             print('Converted successfully!')
         elif userinput == 'p':
             print('Enter new reading path.')
             if not thistable.isempty():
                 print('WARNING: purges current table.')
-            newdcmpath = op.abspath(op.expanduser(input('>> ')))
+            path = op.abspath(op.expanduser(input('>> ')))
             if not op.exists(newdcmpath):
                 print('Given path ' + newdcmpath + ' does not exist!')
                 continue
             currtable = dcmtable(newdcmpath)
             thistable = seriestable(newdcmpath)
-        elif userinput == 'D':
-            # DUMP
-            print('DUMP')
-            print(currtable)
-            print(thistable)
-            print(path)
         else:
             print('Unrecognized command ' + userinput)
 

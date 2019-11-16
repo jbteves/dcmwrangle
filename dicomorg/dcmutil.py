@@ -11,6 +11,7 @@ import subprocess
 import pydicom
 from pydicom import dcmread
 from .colors import *
+from .convert import *
 
 class dcmtable:
     """A table of all dicom files in a directory
@@ -49,7 +50,7 @@ class dcmtable:
         path = op.abspath(path)
         pathcontents = os.listdir(path)
         # Save the path for this table
-        self.tablepath = path
+        self.tablepath = copy(path)
         # Preallocate; for large datasets this improves runtime
         self.filemap = dict.fromkeys(range(len(pathcontents)))
         self.filelist = ['' for i in range(len(pathcontents))]
@@ -269,34 +270,13 @@ class seriestable:
         return newtable
     def convert(self, outpath=None):
         if not outpath:
-            outpath = self.path
+            outpath = self.pathtable.tablepath
         for s in self.SeriesList:
             if s.is_ignorable():
                 continue
-            to_copy = s.get_files()
-            if s.get_alias():
-                fname = s.get_alias()
             else:
-                fname = s.get_seriesname()
-            orgdicom = op.join(self.path, fname)
-
-            if not op.exists(orgdicom):
-                os.mkdir(orgdicom)
-            for f in to_copy:
-                shutil.copyfile(f, op.join(orgdicom, op.basename(f)))
-
-            if not op.exists(outpath):
-                try:
-                    os.mkdir(outpath)
-                except OSError:
-                    raise Exception('Could not make a directory')
-
-            dcm2niix_args = ['dcm2niix', '-o', outpath, '-f',
-                             fname, orgdicom]
-            completion = subprocess.run(dcm2niix_args, 
-                                        stdout=subprocess.DEVNULL)
-            if completion.returncode != 0:
-                raise Exception('dcm2niix failed')
+                s.convert(outpath)
+    
 
 class dcmseries:
     def __init__(self, filetable, filegroup, orig=None):
@@ -361,6 +341,21 @@ class dcmseries:
     def ignore(self):
         """Makes this dicom series ignored in printing"""
         self.alias = ''
+    def convert(self, outpath):
+        """Converts this series"""
+        if self.alias:
+            fname = self.alias
+        else:
+            fname = self.name
+        if self.me:
+            fname += '_echo-%e'
+            for i in range(len(self.echoes)):
+                dcm2niix(self.echo_groups[i], fname, outpath,
+                         overwrite=True)
+        else:
+            dcm2niix(self.files, fname, outpath)
+
+
     def set_alias(self, alias):
         self.alias = alias
     def get_number(self):
