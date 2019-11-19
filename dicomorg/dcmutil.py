@@ -53,8 +53,7 @@ class dcmtable:
         self.tablepath = copy(path)
         # Preallocate; for large datasets this improves runtime
         self.filemap = dict.fromkeys(range(len(pathcontents)))
-        self.filelist = ['' for i in range(len(pathcontents))]
-        toremove = []
+        self.filelist = [None for o in pathcontents]
 
         # Not all files are actually going to be dicoms, need to check
         end_idx = 0
@@ -62,13 +61,13 @@ class dcmtable:
             f = op.join(self.tablepath, pathcontents[i])
             try:
                 self.filemap[f] = dcmread(f, stop_before_pixels=True)
-                self.filelist[i] = f
+                self.filelist[end_idx] = f
                 end_idx += 1
             except (IsADirectoryError, pydicom.errors.InvalidDicomError):
                 pass
 
-        # Slice out blank elements
-        self.filelist[:end_idx+1]
+        self.filelist = self.filelist[:end_idx+1]
+
 
     def __str__(self):
         return ('Path: ' + self.tablepath + '\n' + 
