@@ -21,16 +21,11 @@ def dcm2niix(files, fname, path, overwrite=False, verbose=False):
     if not op.exists(path):
         os.mkdir(path)
 
-    print(cyan('Before:'))
-    print(cyan('\n'.join(glob(op.join(path, '*.nii')))))
-
-
     # Special case: in multi-echo, need to replace %e with 1
     # This is slightly unsafe in that theoretically an echo-2 could exist bu
     # not an echo-1, but this seems unlikely 
     checkname = fulldest.replace('%e', '1') + '.nii'
     if op.exists(checkname) or op.exists(checkname + '.gz'):
-        print(checkname)
         if not overwrite:
             raise ValueError('File ' + fulldest + ' would be overwritten.')
         elif op.exists(checkname):
@@ -46,9 +41,6 @@ def dcm2niix(files, fname, path, overwrite=False, verbose=False):
         completion = subprocess.run(args, encoding='utf-8', 
                                     stderr=subprocess.STDOUT,
                                     stdout=subprocess.PIPE)
-
-    print(magenta('Before:'))
-    print(magenta('\n'.join(glob(op.join(path, '*.nii')))))
 
     os.remove(tempname)
 
