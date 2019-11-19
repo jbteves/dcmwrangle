@@ -53,7 +53,7 @@ class dcmtable:
         self.tablepath = copy(path)
         # Preallocate; for large datasets this improves runtime
         self.filemap = dict.fromkeys(range(len(pathcontents)))
-        self.filelist = [None for o in pathcontents]
+        self.filelist = []
 
         # Not all files are actually going to be dicoms, need to check
         end_idx = 0
@@ -61,12 +61,9 @@ class dcmtable:
             f = op.join(self.tablepath, pathcontents[i])
             try:
                 self.filemap[f] = dcmread(f, stop_before_pixels=True)
-                self.filelist[end_idx] = f
-                end_idx += 1
+                self.filelist.append(f)
             except (IsADirectoryError, pydicom.errors.InvalidDicomError):
                 pass
-
-        self.filelist = self.filelist[:end_idx+1]
 
 
     def __str__(self):
@@ -267,14 +264,40 @@ class seriestable:
                 raise Exception('Given index ' + str(idxtoalias[i]) + 
                                 ' is not in range.')
         return newtable
-    def convert(self, outpath=None):
+    def convert(self, outpath=None, force=False, interactive=True):
         if not outpath:
             outpath = self.pathtable.tablepath
+        print(blue('Converting...'))
+        conversion_failures = 0
+        conversion_errors = []
+        failed_series = []
         for s in self.SeriesList:
             if s.is_ignorable():
                 continue
             else:
-                s.convert(outpath)
+                try:
+                    s.convert(outpath, overwrite=force)
+                    print(green(str(s)))
+                except ConversionError as e:
+                    conversion_failures += 1
+                    conversion_errors.append(str(e))
+                    failed_series.append(str(s))
+                    print(red(str(s)))
+                except ValueError as e:
+                    print(red(str(e)))
+                    print(blue('To force convert, use the force option.'))
+                    break
+        if conversion_failures:
+            print(red(str(conversion_failures) + ' conversion failures'))
+            if interactive:
+                print('See failure messages? (y/n)')
+                userinput = ''
+                while not (userinput == 'n' or userinput == 'y'):
+                    userinput = input('>> ')
+                if userinput == 'y':
+                    for i in range(len(failed_series)):
+                        print(cyan(failed_series[i]))
+                        print(red(conversion_errors[i]))
     
 
 class dcmseries:
@@ -340,7 +363,7 @@ class dcmseries:
     def ignore(self):
         """Makes this dicom series ignored in printing"""
         self.alias = ''
-    def convert(self, outpath):
+    def convert(self, outpath, overwrite=False):
         """Converts this series"""
         if self.alias:
             fname = self.alias
@@ -350,9 +373,9 @@ class dcmseries:
             fname += '_echo-%e'
             for i in range(len(self.echoes)):
                 dcm2niix(self.echo_groups[i], fname, outpath,
-                         overwrite=True)
+                         overwrite=overwrite)
         else:
-            dcm2niix(self.files, fname, outpath)
+            dcm2niix(self.files, fname, outpath, overwrite=overwrite)
 
 
     def set_alias(self, alias):

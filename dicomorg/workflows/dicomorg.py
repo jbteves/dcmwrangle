@@ -25,7 +25,8 @@ def dicomorg(path, template=None):
     if template:
         print('Feature unavailable right now')
     DCMINSTRUCTIONS = ('Please type (i)gnore, (a)lias, (u)ndo, (r)edo, '
-                       '(c)onvert, change (p)ath, '
+                       '(c)onvert, (f)orce convert (overwrites files), '
+                       'change (p)ath, '
                        '(h)elp, or (q)uit.')
     IGNTEXT = ('Use ignore to remove certain series numbers from the '
                'table. '
@@ -67,7 +68,8 @@ def dicomorg(path, template=None):
                   'Please enter a new path.')
             userinput = 'p'
         else:
-            print(thistable)
+            if not (userinput == 'c' or userinput == 'f'):
+                print(thistable)
             userinput = input('>> ')
         if userinput == 'i':
             userinput = input('>> ')
@@ -103,7 +105,16 @@ def dicomorg(path, template=None):
                 niidest = op.abspath(niidest)
                 print('Sending to ' + niidest)
                 thistable.convert(outpath=niidest)
-            print('Converted successfully!')
+        elif userinput == 'f':
+            print('Enter output destination (leave blank for in-place)')
+            niidest = input('>> ')
+            if niidest == None or len(niidest) == 0:
+                print('Sending to ' + path)
+                thistable.convert(force=True)
+            else:
+                niidest = op.abspath(niidest)
+                print('Sending to ' + niidest)
+                thistable.convert(outpath=niidest, force=True)
         elif userinput == 'p':
             print('Enter new reading path.')
             if not thistable.isempty():
