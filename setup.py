@@ -4,7 +4,7 @@ setup(name='dicomorg',
       description='helps organize and convert MRI dicoms',
       author='Joshua B. Teves',
       author_email='jbtevespro@gmail.com',
-      python_requires='>=3.7',
+      python_requires='>=3.6',
       install_requires='pydicom',
       entry_points={'console_scripts':
           ['dicomorg=dicomorg.workflows:main']}
