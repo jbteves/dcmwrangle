@@ -1,0 +1,136 @@
+[General] 
+        dcminteractive contains numerous commands to help you organize
+and eventually convert your data. Each of the following can be done: 
+        help: print help information from the manual
+        undo: undoes your latest change
+        redo: redoes your latest undo 
+        convert: convert your dicoms to nifti format via dcm2niix
+        forceconvert: convert your dicoms, allowing overwrite (DANGEROUS)
+        ignore: ignore a series for viewing and conversion 
+        rename: rename a series description to something else
+        inspect: print key information for a series
+        scrutinize: print all dicom heder information for a series
+        specify: specify values of protected characters (such as %s)
+        template: create a template to apply to other datasets
+        reset: resets to the original dicom table
+For more information, you can type help COMMAND for more information
+Each command's manual contains information on how to use it.
+Commands which will use series numbers will also allow you to specify
+ranges of series numbers in the following way with the syntax START:END
+(as an example, 1:5 would be 1 2 3 4 5). A typical workflow will involve
+ignoring dicom series which you are not interested in, such as scouts, and
+then renaming series you are interested in. Once you are satisfied, you can
+convert the dicoms to the nifti format using Chris Rorden's dcm2niix tool.
+(This is a dependency of the software). You may also save your interactive
+session's decisions as a "template" which can be applied to other datasets.
+Please see MANUAL_TEMPLATE for more information. It is also highly
+recommended to read the supplied manual for this program (MANUAL and
+MANUAL_INTERACTIVE) before use.
+
+[help]
+        Help for dcminteractive. Prints help information for the larger
+program and for individual program commands. To view the help for an
+individual command, use the syntax help COMMAND. For example, to view the
+help for undo, type
+help undo
+and then you will get help text for the undo command. Commands contain both
+instructions and examples for you. It is encouraged for you to read the
+manual in full, and use the in-session help text as reference.
+
+[undo]
+Undoes the latest change.
+Syntax:
+
+undo
+        Undoes your latest change. You can undo changes until you get to
+the original dicom table.
+undo SERIES
+        Undoes the last change to the dicom series specified with
+standard series specification syntax. Run "help series" for more
+information.
+
+Examples:
+1 SCOUT
+>>rename 1 useless
+1 useless
+>>undo
+1 SCOUT
+
+1 SCOUT
+2 GLORIOUS_T1
+>>rename 2 okay_t1
+1 SCOUT
+2 okay_t1
+>>undo 1
+There are no changes to undo for series 1 (SCOUT)
+>>undo okay_t1
+1 SCOUT
+2 GLORIOUS_T1
+>>undo 2
+There are no changes to undo for series 2 (GLORIOUS_T1)
+
+[redo]
+Redoes your last undo. You can redo changes until you are at the last 
+undo, or until a new change is made without undo/redo.
+Syntax:
+
+redo
+        Redoes your last undo.
+redo SERIES
+        Redoes the last change to the dicom series specified with
+standard series specification syntax. Run "help series" for more
+information.
+
+[convert]
+Converts your dicom files to the Nifti-1 format. This uses Chris 
+Rorden's dcm2niix tool. In those mode, nifti files cannot be
+overwritten. Paths are created if they are not found.
+Syntax:
+
+convert
+        Converts everything in the table. You are then prompted to enter
+a destination for the converted files, and leave it blank to have the
+nifti files placed into the same folder as dicoms.
+
+convert PATH
+        Converts everything in the table, with the resulting nifti files
+going to the specified folder.
+
+ 
+Examples:
+Example 1
+---------
+1 GLORIOUS_T1
+>>convert
+Please enter a path (leave blank for in-place):
+>>
+Conversion complete.
+
+The result would look like:
+folder/
+        dicom1.dcm
+        dicom2.dcm
+        ...
+        dicomn.dcm
+        GLORIOUS_T1.nii.gz
+
+---------
+Example 2
+---------
+1 SCOUT
+>>convert niftis
+Conversion complete.
+
+The result would look like:
+folder/
+        
+
+[force]
+Forcefully converts your dicom files to the Nifti-1 format,
+allowing file overwrites. In this mode, a file naming collision will
+result in the original file being deleted and a new file being written
+in its place.
+
+[ignore]
+Ignore series in the table. 
+Syntax:
