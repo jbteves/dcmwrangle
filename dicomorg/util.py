@@ -333,6 +333,7 @@ def group_key_att(indict, attribute, subset=None, sort=True):
 
     if sort:
         groups = [x for _,x in sorted(zip(unique_values, groups))]
+        unique_values.sort()
 
     return groups, unique_values
 
