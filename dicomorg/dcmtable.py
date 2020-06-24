@@ -71,4 +71,4 @@ class dcmtable:
                 self.echoes[i] = echoes
             
             # Create the common group
-            self.groups = {'common' : [i for i in range(len(self.numbers))]}
+            self.groups = {'ungrouped' : [i for i in range(len(self.numbers))]}

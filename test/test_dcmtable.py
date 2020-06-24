@@ -18,7 +18,7 @@ def test_get_test_data():
 
 def test_dcmtable_group_info():
     table = get_test_data()
-    assert table.groups == {'common' : [0, 1, 2, 3, 4, 5]}
+    assert table.groups == {'ungrouped' : [0, 1, 2, 3, 4, 5]}
 
 
 def test_dcmtable_series_names():
