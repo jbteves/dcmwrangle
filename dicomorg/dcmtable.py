@@ -1,13 +1,14 @@
-#/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding : utf-8 -*-
 
 import os
 import os.path as op
 
-import pydicom
+from pydicom import dcmread, errors
 
-from dicomorg import util
-from dicomorg.util import *
+from dicomorg.util import group_key_att
+from dicomorg import colors
+
 
 class dcmtable:
     """The grand dicom table
@@ -22,7 +23,7 @@ class dcmtable:
         A dictionary where each group name is a key to the list of series
         numbers associated with that group.
     numbers : list
-        A list indicating which series numbers are present, indices match 
+        A list indicating which series numbers are present, indices match
         the seriesname and seriesfile attributes.
     names : list
         A list indicating the name of each series number.
@@ -31,30 +32,33 @@ class dcmtable:
     echoes: list
         A list indicating the echo times for each series.
     """
+
     def __init__(self, basis):
         if isinstance(basis, str):
             # Create table from file path
-            self.path = basis
+            self.path = op.abspath(basis)
             toread = os.listdir(self.path)
             toread = [op.join(basis, f) for f in toread]
             self.table = {}
 
             for f in toread:
                 try:
-                    self.table[f] = pydicom.dcmread(f, 
-                                                    stop_before_pixels=True)
-                except:
+                    if op.isdir(f):
+                        continue
+                    else:
+                        self.table[f] = dcmread(f, stop_before_pixels=True)
+                except errors.InvalidDicomError:
                     continue
 
             # Find all series
             files, numbers = group_key_att(self.table, 'SeriesNumber')
             self.files = files
             self.numbers = [int(i) for i in numbers]
-          
+
             # Get all series names, make sure no name overloading
             self.names = ['' for i in self.files]
             for i in range(len(self.files)):
-                sfiles, snames = group_key_att(self.table, 
+                sfiles, snames = group_key_att(self.table,
                                                'SeriesDescription',
                                                subset=self.files[i])
                 if len(snames) != 1:
@@ -69,6 +73,32 @@ class dcmtable:
                                           subset=self.files[i])
                 echoes = [float(e) for e in echoes]
                 self.echoes[i] = echoes
-            
+
             # Create the common group
-            self.groups = {'ungrouped' : [i for i in range(len(self.numbers))]}
+            self.groups = {'ungrouped': [i for i in range(len(self.numbers))]}
+
+    def __str__(self):
+        allparts = [colors.green('Dicom files at {0}'.format(self.path))]
+        style = '{:3d}\t{:35s}\t{:15}\t{:5d}\t{:2s}'
+        for g in self.groups:
+            allparts += [colors.magenta('{0}:'.format(g))]
+
+            stringparts = ['' for i in range(len(self.files))]
+            for i in range(len(self.groups[g])):
+                idx = self.groups[g][i]
+                hdr = self.table[self.files[idx][0]]
+                name = getattr(hdr, 'SeriesDescription')
+                time = getattr(hdr, 'SeriesTime')
+                if len(self.echoes[idx]) == 1:
+                    echo = 'SE'
+                    color = colors.blue
+                else:
+                    echo = 'ME'
+                    color = colors.cyan
+                nfiles = len(self.files[idx])
+                stringparts[i] = color(style.format(self.numbers[idx],
+                                       name, time, nfiles, echo))
+            allparts += stringparts
+        finalstr = '\n'.join(allparts)
+
+        return finalstr

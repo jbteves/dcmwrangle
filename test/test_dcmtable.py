@@ -6,6 +6,7 @@ import os.path as op
 
 import pydicom
 from dicomorg import dcmtable
+from dicomorg import colors
 
 def get_test_data():
     data_path = op.join(op.abspath('.'), 'data')
@@ -53,3 +54,29 @@ def test_dcmtable_series_echoes():
     assert table.echoes[3] == [1.37]
     assert table.echoes[4] == [11.2, 32.36, 53.52]
     assert table.echoes[5] == [11.2, 32.36, 53.52]
+
+def test_dcmtable_str():
+    table = get_test_data()
+    path = op.join(op.abspath('.'), 'data')
+    pathstr = [colors.green('Dicom files at {0}'.format(path))]
+    group = [colors.magenta('ungrouped:')]
+    style = '{:3d}\t{:35s}\t{:15}\t{:5d}\t{:2s}'
+    stringparts = ['' for i in range(len(table.files))]
+    for i in range(len(table.files)):
+        hdr = table.table[table.files[i][0]]
+        name = getattr(hdr, 'SeriesDescription')
+        time = getattr(hdr, 'SeriesTime')
+        if len(table.echoes[i]) == 1:
+            echo = 'SE'
+            color = colors.blue
+        else:
+            echo = 'ME'
+            color = colors.cyan
+        nfiles = len(table.files[i])
+        stringparts[i] = color(style.format(i+1, name, time, nfiles, 
+                               echo))
+    # Join all ports
+    allparts = pathstr + group + stringparts
+    finalstr = '\n'.join(allparts)
+
+    assert table.__str__() == finalstr
