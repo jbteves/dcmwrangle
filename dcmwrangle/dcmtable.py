@@ -53,7 +53,8 @@ class dcmtable:
             # Create table from file path
             self.path = op.abspath(basis)
             if not op.isdir(self.path):
-                raise ValueError('Directory supplied does not exist!')
+                raise ValueError('Directory supplied '
+                                 '({0}) does not exist!'.format(self.path))
             toread = os.listdir(self.path)
             toread = [op.join(basis, f) for f in toread]
             self.table = {}
@@ -93,8 +94,18 @@ class dcmtable:
 
             # Create the common group
             self.groups = {'ungrouped': [i for i in range(len(self.numbers))]}
+        elif isinstance(basis, dcmtable):
+            self.path = basis.path
+            self.table = basis.table
+            self.files = basis.files
+            self.numbers = basis.numbers
+            self.names = basis.names
+            self.echoes = basis.echoes
+            self.groups = basis.groups
         else:
-            raise TypeError('basis must be str, {0} supplied', type(basis))
+            thistype = type(basis)
+            raise TypeError('basis must be str or dcmtable, '
+                            '{0} supplied'.format(thistype))
 
     def __str__(self):
         allparts = [colors.green('Dicom files at {0}'.format(self.path))]

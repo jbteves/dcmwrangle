@@ -5,7 +5,7 @@ import pytest
 import pathlib
 import os.path as op
 
-from dcmwrangle import dcmtable
+from dcmwrangle.dcmtable import dcmtable
 from dcmwrangle import colors
 
 herepath = pathlib.Path(__file__).parent.absolute()
@@ -13,23 +13,52 @@ herepath = pathlib.Path(__file__).parent.absolute()
 
 def get_test_data():
     data_path = op.join(herepath, 'data')
-    table = dcmtable.dcmtable(data_path)
+    table = dcmtable(data_path)
     return table
 
 
 def test_get_test_data():
     table = get_test_data()
-    assert isinstance(table, dcmtable.dcmtable)
+    assert isinstance(table, dcmtable)
 
 
 def test_build_from_bad_dir():
     with pytest.raises(ValueError, match=r'Directory*'):
-        dcmtable.dcmtable('/here/is/kalamazoo')
+        dcmtable('/here/is/kalamazoo')
 
 
 def test_build_from_nonstr():
     with pytest.raises(TypeError):
-        dcmtable.dcmtable(1)
+        dcmtable(1)
+
+
+def test_build_from_dcmtable():
+    table = get_test_data()
+    table2 = dcmtable(table)
+    assert table2.groups == {'ungrouped': [0, 1, 2, 3, 4, 5]}
+    assert len(table2.names) == 6
+    assert table2.names == ['AAHEAD_SCOUT_TMS',
+                            'AAHEAD_SCOUT_TMS_MPR_sag',
+                            'AAHEAD_SCOUT_TMS_MPR_cor',
+                            'AAHEAD_SCOUT_TMS_MPR_tra',
+                            'MBME_RPE1_TMS_SBRef', 'MBME_RPE1_TMS']
+    assert table2.numbers == [1, 2, 3, 4, 5, 6]
+    assert len(table2.files[0]) == 128
+    assert len(table2.files[1]) == 5
+    assert len(table2.files[2]) == 3
+    assert len(table2.files[3]) == 3
+    assert len(table2.files[4]) == 3
+    assert len(table2.files[5]) == 9
+    assert table2.echoes[0] == [1.37]
+    assert table2.echoes[1] == [1.37]
+    assert table2.echoes[2] == [1.37]
+    assert table2.echoes[3] == [1.37]
+    assert table2.echoes[4] == [11.2, 32.36, 53.52]
+    assert table2.echoes[5] == [11.2, 32.36, 53.52]
+    table2.numbers = []
+    assert table.numbers == [1, 2, 3, 4, 5, 6]
+    table2.groups = {'data': [0, 1, 2, 3, 4, 5]}
+    assert table.groups == {'ungrouped': [0, 1, 2, 3, 4, 5]}
 
 
 def test_dcmtable_group_info():
