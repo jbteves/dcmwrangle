@@ -7,5 +7,5 @@ setup(name='dicomorg',
       python_requires='>=3.6',
       install_requires='pydicom',
       entry_points={'console_scripts':
-          ['dicomorg=dicomorg.workflows:main']}
+          ['dcmwrangle=dcmwrangle.workflows:main']}
       )

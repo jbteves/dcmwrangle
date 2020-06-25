@@ -3,7 +3,7 @@
 
 import pytest
 
-from dicomorg.util import *
+from dcmwrangle.util import *
 
 
 class Point:
@@ -284,12 +284,3 @@ def test_gs_quit():
     assert operator == Operators.QUIT
     assert group is None
     assert arg is None
-
-    with pytest.raises(ValueError, match=r'group*'):
-        operator, group, arg = get_statement('q 1:3')
-
-    with pytest.raises(ValueError, match=r'argument*'):
-        operator, group, arg = get_statement('q cat')
-
-    with pytest.raises(ValueError, match='group*'):
-        operator, group, arg = get_statement('q [1 2 3 4:5] dog')

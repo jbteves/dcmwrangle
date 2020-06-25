@@ -5,8 +5,8 @@ import pytest
 import pathlib
 import os.path as op
 
-from dicomorg import dcmtable
-from dicomorg import colors
+from dcmwrangle import dcmtable
+from dcmwrangle import colors
 
 herepath = pathlib.Path(__file__).parent.absolute()
 
