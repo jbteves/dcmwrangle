@@ -4,28 +4,35 @@
 import sys
 from enum import Enum
 
+from dcmwrangle.dcmtable import dcmtable
+
 
 class Operators(Enum):
-    QUIT = 0 
+    QUIT = 0,
+    GROUP = 1
 
 
 optable = {'q': Operators.QUIT,
-           'quit': Operators.QUIT}
+           'quit': Operators.QUIT,
+           'g': Operators.GROUP,
+           'group': Operators.GROUP}
 
-def halt(group, arg):
+def halt(group, arg, table):
     """Halts execution of a program.
 
     Parameters
     ----------
     group
-        Should not pass this
+        Should not pass this.
     arg
-        Should not pass this
+        Should not pass this.
+    table : dcmtable
+        Should be a dcmtable, but gets ignored.
 
     Raises
     ------
     ValueError
-        If you pass arguments anyway.
+        If you the first two pass arguments anyway.
     """
     if group is not None:
         raise ValueError('Quit does not take a group')
@@ -33,7 +40,58 @@ def halt(group, arg):
         raise ValueError('Quit does not take arguments')
     sys.exit()
 
-fptable = {Operators.QUIT: halt}
+def group(g, arg, table):
+    """Groups a dcmtable's series.
+
+    Parameters
+    ----------
+    g : list
+        The series group.
+    arg : str
+        The name of the group you'd like to make.
+    table : dcmtable
+        The dcmtable you'd like to modify
+
+    Raises
+    ------
+    TypeError
+        If the specified types are not matched.
+    ValueError
+        If the series group is outside of the range of the table.
+    """
+    if not isinstance(g, list):
+        raise TypeError('Series group must be list, is of type '
+                        '{0}'.format(str(type(g))))
+    if not isinstance(arg, str):
+        raise TypeError('Group name must be str, is of type '
+                        '{0}'.format(str(type(arg))))
+    if not isinstance(table, dcmtable):
+        raise TypeError('Table must be dcmtable, is of type '
+                        '{0}'.format(str(type(arg))))
+
+    indices = []
+    for s in g:
+        indices.append(table.number2idx(s))
+    for g in table.groups:
+        group_indices = table.groups[g]
+        for i in indices:
+            if i in group_indices:
+                group_indices.remove(i)
+    emptygroups = []
+    for g in table.groups:
+        if not table.groups[g]:
+            emptygroups.append(g)
+    for g in emptygroups:
+        del table.groups[g]
+    if arg not in table.groups:
+        table.groups[arg] = indices
+    else:
+        for idx in indices:
+            table.groups[arg].append(idx)
+
+
+fptable = {Operators.QUIT: halt,
+           Operators.GROUP: group}
 
 def word2op(word):
     """Looks up the operator from a word.

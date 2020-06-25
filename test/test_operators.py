@@ -2,6 +2,7 @@
 # -*- coding : utf-8 -*-
 
 import pytest
+from test_dcmtable import get_test_data
 
 from dcmwrangle.parsing import *
 from dcmwrangle.operators import *
@@ -9,11 +10,59 @@ from dcmwrangle.operators import *
 
 def test_halt():
     with pytest.raises(ValueError):
-        halt('', None)
+        halt('', None, None)
     with pytest.raises(ValueError):
-        halt(None, '')
+        halt(None, '', None)
     with pytest.raises(SystemExit):
-        halt(None, None)
+        halt(None, None, None)
+
+
+def test_parsed_quit():
+    operator, group, arg = get_statement('q')
+    fn = word2fn(operator)
+    with pytest.raises(SystemExit):
+        fn(group, arg, None)
+
+    operator, group, arg = get_statement('quit')
+    fn = word2fn(operator)
+    with pytest.raises(SystemExit):
+        fn(group, arg, None)
+
+
+def test_group():
+    table = get_test_data()
+    with pytest.raises(TypeError):
+        group(None, 'anat', table)
+    with pytest.raises(TypeError):
+        group([1], None, table)
+    with pytest.raises(TypeError):
+        group([1], 'anat', None)
+
+    newtable = dcmtable(table)
+    group([1, 2, 3, 4], 'scout', newtable)
+    assert newtable.groups == {'ungrouped': [4, 5], 'scout': [0, 1, 2, 3]}
+    assert table.groups == {'ungrouped': [0, 1, 2, 3, 4, 5]}
+    group([5, 6], 'tms', newtable)
+    assert newtable.groups == {'tms': [4, 5], 'scout': [0, 1, 2, 3]}
+    assert 'ungrouped' in table.groups
+    group([5], 'sbref', newtable)
+    assert newtable.groups == {'tms': [5], 'scout': [0, 1, 2, 3],
+                               'sbref': [4]}
+    assert 'sbref' not in table.groups
+
+    # check we reorder when we run group on something that's grouped
+    newtable = dcmtable(table)
+    group([1, 2], 'scout', newtable)
+    group([1], 'scout', newtable)
+    assert newtable.groups['scout'] == [1, 0]
+
+
+def test_parsed_group():
+    table = get_test_data()
+    operator, group, arg = get_statement('group 1:4 scout')
+    fn = word2fn(operator)
+    fn(group, arg, table)
+    assert table.groups == {'ungrouped': [4, 5], 'scout': [0, 1, 2, 3]}
 
 
 def test_word2op():

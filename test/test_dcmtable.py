@@ -101,6 +101,12 @@ def test_dcmtable_series_echoes():
     assert table.echoes[5] == [11.2, 32.36, 53.52]
 
 
+def test_dcmtable_number2idx():
+    table = get_test_data()
+    for i in range(6):
+        assert table.number2idx(i + 1) == i
+
+
 def test_dcmtable_str():
     table = get_test_data()
     path = op.join(herepath, 'data')
@@ -125,4 +131,37 @@ def test_dcmtable_str():
     allparts = pathstr + group + stringparts
     finalstr = '\n'.join(allparts)
 
+    assert table.__str__() == finalstr
+
+    # Try grouping so that we can test appearance for grouping
+    table.groups = {'scout': [0, 1, 2, 3], 'tms': [4, 5]}
+    groups = ['scout', 'tms']
+    style = '{:3d}\t{:35s}\t{:15}\t{:5d}\t{:2s}'
+    allparts = pathstr
+
+    for g in groups:
+        allparts += [colors.magenta(g + ':')]
+        stringparts = ['' for i in range(len(table.groups[g]))]
+        for i in range(len(table.groups[g])):
+            idx = table.groups[g][i]
+            hdr = table.table[table.files[idx][0]]
+            name = getattr(hdr, 'SeriesDescription')
+            time = getattr(hdr, 'SeriesTime')
+            if len(table.echoes[idx]) == 1:
+                echo = 'SE'
+                color = colors.blue
+            else:
+                echo = 'ME'
+                color = colors.cyan
+            nfiles = len(table.files[idx])
+            stringparts[i] = color(style.format(idx + 1, name, time, nfiles,
+                                   echo))
+        allparts += stringparts
+    # Join all ports
+    finalstr = '\n'.join(allparts)
+
+    print(colors.red('Table:'))
+    print(table)
+    print(colors.red('Test:'))
+    print(finalstr)
     assert table.__str__() == finalstr

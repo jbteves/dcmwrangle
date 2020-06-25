@@ -41,12 +41,8 @@ def dcmwrangle(path):
         try:
             op, group, arg = get_statement(input(prompt))
             fn = word2fn(op)
-            fn(group, arg)
-
+            fn(group, arg, currtable)
         except TypeError as e:
-            print(red('Internal error; please post an issue to \n') +
-                  blue(github_target) + '\n' +
-                  red('With a copy of your table and this message: ' + 
-                      str(e)))
+            print(red(str(e)))
         except ValueError as e:
             print(red(str(e)))

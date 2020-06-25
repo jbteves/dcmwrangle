@@ -3,6 +3,7 @@
 
 import os
 import os.path as op
+from copy import deepcopy
 
 from pydicom import dcmread, errors
 
@@ -98,22 +99,38 @@ class dcmtable:
             self.path = basis.path
             self.table = basis.table
             self.files = basis.files
-            self.numbers = basis.numbers
-            self.names = basis.names
-            self.echoes = basis.echoes
-            self.groups = basis.groups
+            self.numbers = deepcopy(basis.numbers)
+            self.names = deepcopy(basis.names)
+            self.echoes = deepcopy(basis.echoes)
+            self.groups = deepcopy(basis.groups)
         else:
             thistype = type(basis)
             raise TypeError('basis must be str or dcmtable, '
                             '{0} supplied'.format(thistype))
+
+    def number2idx(self, number):
+        """Converts a number to an index of series.
+
+        Parameters
+        ----------
+        number
+            The series number to index.
+
+        Raises
+        ------
+        ValueError
+            If the series number is not present in the table.
+        """
+        if not number in self.numbers:
+            raise ValueError('Series {0} not in table.'.format(number))
+        return self.numbers.index(number)
 
     def __str__(self):
         allparts = [colors.green('Dicom files at {0}'.format(self.path))]
         style = '{:3d}\t{:35s}\t{:15}\t{:5d}\t{:2s}'
         for g in self.groups:
             allparts += [colors.magenta('{0}:'.format(g))]
-
-            stringparts = ['' for i in range(len(self.files))]
+            stringparts = ['' for i in range(len(self.groups[g]))]
             for i in range(len(self.groups[g])):
                 idx = self.groups[g][i]
                 hdr = self.table[self.files[idx][0]]
