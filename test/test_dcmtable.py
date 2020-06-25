@@ -27,6 +27,11 @@ def test_build_from_bad_dir():
         dcmtable.dcmtable('/here/is/kalamazoo')
 
 
+def test_build_from_nonstr():
+    with pytest.raises(TypeError):
+        dcmtable.dcmtable(1)
+
+
 def test_dcmtable_group_info():
     table = get_test_data()
     assert table.groups == {'ungrouped': [0, 1, 2, 3, 4, 5]}

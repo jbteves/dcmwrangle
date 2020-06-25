@@ -34,6 +34,21 @@ class dcmtable:
     """
 
     def __init__(self, basis):
+        """Constructor for dcmtable
+
+        Parameters
+        ----------
+        basis : str
+            A string indicating where the dicom files are that this table
+            should build from.
+
+        Raises
+        ------
+        TypeError
+            If the basis is not a string
+        ValueError
+            If the basis does not exist
+        """
         if isinstance(basis, str):
             # Create table from file path
             self.path = op.abspath(basis)
@@ -78,6 +93,8 @@ class dcmtable:
 
             # Create the common group
             self.groups = {'ungrouped': [i for i in range(len(self.numbers))]}
+        else:
+            raise TypeError('basis must be str, {0} supplied', type(basis))
 
     def __str__(self):
         allparts = [colors.green('Dicom files at {0}'.format(self.path))]
