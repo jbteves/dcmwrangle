@@ -1,24 +1,20 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding : utf-8 -*-
 
-import sys
 from enum import Enum
+
 
 class Operators(Enum):
     QUIT = 0
 
-operator_enums = {
-        'q' : Operators.QUIT,
-        'quit' : Operators.QUIT 
-}
 
-op_takes_group = {
-        Operators.QUIT : False
-}
+operator_enums = {'q': Operators.QUIT,
+                  'quit': Operators.QUIT}
 
-op_takes_arg = {
-        Operators.QUIT : False
-}
+op_takes_group = {Operators.QUIT: False}
+
+op_takes_arg = {Operators.QUIT: False}
+
 
 def get_argument(wordlist):
     """Gets the argument from a wordlist
@@ -68,7 +64,7 @@ def get_srange(word):
     TypeError
         If the word is not a string or if a non-integer number is detected.
     ValueError
-        If the word contains non-numerics or has insufficient range 
+        If the word contains non-numerics or has insufficient range
         arguments.
     """
 
@@ -173,7 +169,6 @@ def get_group(wordlist):
             else:
                 raise ValueError('Can only have one grouping')
 
-
     if (rbracket < lbracket) or (lbracket >= 0 and rbracket < 0):
         raise ValueError('Unmatched bracket')
 
@@ -205,7 +200,7 @@ def get_group(wordlist):
         if ']' in wordlist[i]:
             rword = i
 
-    wordlist = wordlist[rword+1:]
+    wordlist = wordlist[rword + 1:]
     return group, wordlist
 
 
@@ -265,6 +260,7 @@ def get_statement(user_input, pad=None):
 
     return op, group, argument
 
+
 def group_key_att(indict, attribute, subset=None, sort=True):
     """Group keys by the attribute, sorting the attribute
 
@@ -282,13 +278,13 @@ def group_key_att(indict, attribute, subset=None, sort=True):
     values : list
         A sorted list of the unique values found in the attribute.
     groups : list
-        A list of lists, with each sublist the list of keys which match the 
-        same index in the returned list of values.
+        A list of lists, with each sublist the list of keys which match
+        the same index in the returned list of values.
 
     Raises
     ------
     AttributeError
-        If the attribute requested does not exist for one of the items in 
+        If the attribute requested does not exist for one of the items in
         the dict.
     KeyError
         If one of the keys in the subset is not present in the dict.
@@ -322,7 +318,7 @@ def group_key_att(indict, attribute, subset=None, sort=True):
     test_dict = {}
     for k in subset:
         attribute_value = getattr(indict[k], attribute)
-        if not attribute_value in test_dict:
+        if attribute_value not in test_dict:
             test_dict[attribute_value] = []
         test_dict[attribute_value].append(k)
     unique_values = [k for k in test_dict]
@@ -332,7 +328,7 @@ def group_key_att(indict, attribute, subset=None, sort=True):
         groups[i] = test_dict[unique_values[i]]
 
     if sort:
-        groups = [x for _,x in sorted(zip(unique_values, groups))]
+        groups = [x for _, x in sorted(zip(unique_values, groups))]
         unique_values.sort()
 
     return groups, unique_values

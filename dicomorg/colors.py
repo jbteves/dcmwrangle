@@ -16,6 +16,7 @@ def build_color_string(code, string, reset=True):
     else:
         return newstr
 
+
 def black(tocolor, reset=True, bright=True):
     if bright:
         return build_color_string('\u001b[30;1m', tocolor, reset)
@@ -43,11 +44,13 @@ def yellow(tocolor, reset=True, bright=True):
     else:
         return build_color_string('\u001b[33m', tocolor, reset)
 
+
 def blue(tocolor, reset=True, bright=True):
     if bright:
         return build_color_string('\u001b[34;1m', tocolor, reset)
     else:
         return build_color_string('\u001b[34m', tocolor, reset)
+
 
 def magenta(tocolor, reset=True, bright=True):
     if bright:
@@ -55,15 +58,16 @@ def magenta(tocolor, reset=True, bright=True):
     else:
         return build_color_string('\u001b[35m', tocolor, reset)
 
+
 def cyan(tocolor, reset=True, bright=True):
     if bright:
         return build_color_string('\u001b[36;1m', tocolor, reset)
     else:
         return build_color_string('\u001b[36m', tocolor, reset)
 
+
 def white(tocolor, reset=True, bright=True):
     if bright:
         return build_color_string('\u001b[37;1m', tocolor, reset)
     else:
         return build_color_string('\u001b[37m', tocolor, reset)
-

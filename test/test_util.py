@@ -1,12 +1,10 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding : utf-8 -*-
-
-import sys
 
 import pytest
 
-from dicomorg import util
 from dicomorg.util import *
+
 
 class Point:
     """Simple class for testing.
@@ -19,15 +17,14 @@ class Point:
         self.x = x
         self.y = y
 
+
 def test_group_key_att():
     """Tests grouping keys by attributes of the objects."""
-
-
     # Construct some points and put them into dicts
     testdict = {}
-    testdict['cat'] = Point(1,1)
-    testdict['dog'] = Point(1,2)
-    testdict['zebra'] = Point(3,3)
+    testdict['cat'] = Point(1, 1)
+    testdict['dog'] = Point(1, 2)
+    testdict['zebra'] = Point(3, 3)
 
     # ------------------
     # Check for failures
@@ -55,17 +52,12 @@ def test_group_key_att():
     # Check for failure when using non-existent subset
     with pytest.raises(KeyError):
         x_groups, x_vals = group_key_att(testdict, 'x', subset=['seal'])
-
-
     # -----------------
     # Whole-dict search
     # -----------------
-
-
     x_groups, x_vals = group_key_att(testdict, 'x')
     # Use empty list subset to check corner case where subset is empty
     y_groups, y_vals = group_key_att(testdict, 'y', subset=[])
-
     # X Grouping
     # ----------
     # Should have two unique x-values
@@ -92,12 +84,9 @@ def test_group_key_att():
     assert y_groups[0] == ['cat']
     assert y_groups[1] == ['dog']
     assert y_groups[2] == ['zebra']
-
-
     # ------------------------
     # Check for subset of keys
     # ------------------------
-
     x_groups, x_vals = group_key_att(testdict, 'x', subset=['cat', 'dog'])
     y_groups, y_vals = group_key_att(testdict, 'y', subset=['cat', 'dog'])
 
@@ -131,9 +120,9 @@ def test_group_key_value():
     """Test group_key_value with simple point class."""
     # Construct some points and put them into dicts
     testdict = {}
-    testdict['cat'] = Point(1,1)
-    testdict['dog'] = Point(1,2)
-    testdict['zebra'] = Point(3,3)
+    testdict['cat'] = Point(1, 1)
+    testdict['dog'] = Point(1, 2)
+    testdict['zebra'] = Point(3, 3)
 
     # ------------------
     # Check for failures
@@ -162,8 +151,6 @@ def test_group_key_value():
     with pytest.raises(KeyError):
         x_groups, x_vals = group_key_val(testdict, 'x',
                                          None, subset=['seal'])
-
-
     # -----------------------------------
     # Check for Matches to various values
     # -----------------------------------
@@ -193,12 +180,12 @@ def test_group_key_value():
     matches_y_naught = group_key_val(testdict, 'y', 0)
     assert matches_y_naught == []
 
-    matches_y_null = group_key_val(testdict, 'y', None)
+    matches_y_naught = group_key_val(testdict, 'y', None)
     assert matches_y_naught == []
 
     # Check that subset works
-    testdict['philosophy'] = Point(1,-1) # Add an overload to x = 1
-    testdict['afterthought'] = Point(-1,1) # Add an overload to y = 1
+    testdict['philosophy'] = Point(1, -1)  # Add an overload to x = 1
+    testdict['afterthought'] = Point(-1, 1)  # Add an overload to y = 1
 
     matches_x_subset = group_key_val(testdict, 'x', 1,
                                      subset=['cat', 'dog'])
@@ -264,17 +251,17 @@ def test_get_srange():
 def test_get_group():
     """Tests to make sure get_group gets correct numerical groups."""
     g, w = get_group(['1:3', 'aardvark'])
-    assert g == [1,2,3]
+    assert g == [1, 2, 3]
     assert w == ['aardvark']
     g, w = get_group(['[1', '2', '3]', 'aardvark'])
-    assert g == [1,2,3]
+    assert g == [1, 2, 3]
     assert w == ['aardvark']
     g, w = get_group(['1:3'])
-    assert g == [1,2,3]
+    assert g == [1, 2, 3]
     g, w = get_group(['[3:1', '5', '7]'])
-    assert g == [1,2,3,5,7]
+    assert g == [1, 2, 3, 5, 7]
     g, w = get_group([])
-    assert g == None
+    assert g is None
     with pytest.raises(ValueError):
         get_group(['['])
     with pytest.raises(ValueError):
@@ -290,13 +277,13 @@ def test_gs_quit():
 
     operator, group, arg = get_statement('q')
     assert operator == Operators.QUIT
-    assert group == None
-    assert arg == None
+    assert group is None
+    assert arg is None
 
     operator, group, arg = get_statement('quit')
     assert operator == Operators.QUIT
-    assert group == None
-    assert arg == None
+    assert group is None
+    assert arg is None
 
     with pytest.raises(ValueError, match=r'group*'):
         operator, group, arg = get_statement('q 1:3')

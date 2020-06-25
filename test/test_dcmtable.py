@@ -1,40 +1,42 @@
-#/usr/bin/env python
+#!/usr/bin/env python
 # -*- coding : utf-8 -*-
 
-import os
 import os.path as op
 
-import pydicom
 from dicomorg import dcmtable
 from dicomorg import colors
+
 
 def get_test_data():
     data_path = op.join(op.abspath('.'), 'data')
     table = dcmtable.dcmtable(data_path)
     return table
 
+
 def test_get_test_data():
     table = get_test_data()
     assert isinstance(table, dcmtable.dcmtable)
 
+
 def test_dcmtable_group_info():
     table = get_test_data()
-    assert table.groups == {'ungrouped' : [0, 1, 2, 3, 4, 5]}
+    assert table.groups == {'ungrouped': [0, 1, 2, 3, 4, 5]}
 
 
 def test_dcmtable_series_names():
     table = get_test_data()
     assert len(table.names) == 6
-    assert table.names == ['AAHEAD_SCOUT_TMS', 
-                                 'AAHEAD_SCOUT_TMS_MPR_sag',
-                                 'AAHEAD_SCOUT_TMS_MPR_cor',
-                                 'AAHEAD_SCOUT_TMS_MPR_tra',
-                                 'MBME_RPE1_TMS_SBRef', 'MBME_RPE1_TMS']
+    assert table.names == ['AAHEAD_SCOUT_TMS',
+                           'AAHEAD_SCOUT_TMS_MPR_sag',
+                           'AAHEAD_SCOUT_TMS_MPR_cor',
+                           'AAHEAD_SCOUT_TMS_MPR_tra',
+                           'MBME_RPE1_TMS_SBRef', 'MBME_RPE1_TMS']
 
 
 def test_dcmtable_series_numbers():
     table = get_test_data()
     assert table.numbers == [1, 2, 3, 4, 5, 6]
+
 
 def test_dcmtable_series_filecounts():
     table = get_test_data()
@@ -55,6 +57,7 @@ def test_dcmtable_series_echoes():
     assert table.echoes[4] == [11.2, 32.36, 53.52]
     assert table.echoes[5] == [11.2, 32.36, 53.52]
 
+
 def test_dcmtable_str():
     table = get_test_data()
     path = op.join(op.abspath('.'), 'data')
@@ -73,7 +76,7 @@ def test_dcmtable_str():
             echo = 'ME'
             color = colors.cyan
         nfiles = len(table.files[i])
-        stringparts[i] = color(style.format(i+1, name, time, nfiles, 
+        stringparts[i] = color(style.format(i + 1, name, time, nfiles,
                                echo))
     # Join all ports
     allparts = pathstr + group + stringparts
