@@ -1,14 +1,17 @@
 #!/usr/bin/env python
 # -*- coding : utf-8 -*-
 
+import pathlib
 import os.path as op
 
 from dicomorg import dcmtable
 from dicomorg import colors
 
+herepath = pathlib.Path(__file__).parent.absolute()
+
 
 def get_test_data():
-    data_path = op.join(op.abspath('.'), 'data')
+    data_path = op.join(herepath, 'data')
     table = dcmtable.dcmtable(data_path)
     return table
 
@@ -60,7 +63,7 @@ def test_dcmtable_series_echoes():
 
 def test_dcmtable_str():
     table = get_test_data()
-    path = op.join(op.abspath('.'), 'data')
+    path = op.join(herepath, 'data')
     pathstr = [colors.green('Dicom files at {0}'.format(path))]
     group = [colors.magenta('ungrouped:')]
     style = '{:3d}\t{:35s}\t{:15}\t{:5d}\t{:2s}'
