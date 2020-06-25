@@ -37,6 +37,8 @@ class dcmtable:
         if isinstance(basis, str):
             # Create table from file path
             self.path = op.abspath(basis)
+            if not op.isdir(self.path):
+                raise ValueError('Directory supplied does not exist!')
             toread = os.listdir(self.path)
             toread = [op.join(basis, f) for f in toread]
             self.table = {}

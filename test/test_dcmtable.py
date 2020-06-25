@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 # -*- coding : utf-8 -*-
 
+import pytest
 import pathlib
 import os.path as op
 
@@ -19,6 +20,11 @@ def get_test_data():
 def test_get_test_data():
     table = get_test_data()
     assert isinstance(table, dcmtable.dcmtable)
+
+
+def test_build_from_bad_dir():
+    with pytest.raises(ValueError, match=r'Directory*'):
+        dcmtable.dcmtable('/here/is/kalamazoo')
 
 
 def test_dcmtable_group_info():
