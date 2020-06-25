@@ -6,8 +6,8 @@ import os.path as op
 
 from pydicom import dcmread, errors
 
-from dicomorg.util import group_key_att
-from dicomorg import colors
+from dcmwrangle.util import group_key_att
+from dcmwrangle import colors
 
 
 class dcmtable:

@@ -5,7 +5,8 @@ import sys
 import readline
 import argparse
 from dcmwrangle.colors import *
-from dcmwrangle.util import *
+from dcmwrangle.operators import *
+from dcmwrangle.parsing import get_statement
 from dcmwrangle.dcmtable import dcmtable
 
 
@@ -39,7 +40,7 @@ def dcmwrangle(path):
         print(currtable)
         try:
             op, group, arg = get_statement(input(prompt))
-            fn = fptable[op]
+            fn = word2fn(op)
             fn(group, arg)
 
         except TypeError as e:
