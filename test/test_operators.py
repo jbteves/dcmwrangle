@@ -65,6 +65,38 @@ def test_parsed_group():
     assert table.groups == {'ungrouped': [4, 5], 'scout': [0, 1, 2, 3]}
 
 
+def test_ungroup():
+    table = get_test_data()
+    with pytest.raises(TypeError):
+        ungroup(None, None)
+    with pytest.raises(TypeError):
+        ungroup(1, None)
+
+    newtable = dcmtable(table)
+    group([1, 2, 3, 4], 'scout', newtable)
+    ungroup([1, 2, 3, 4], None, newtable)
+    assert newtable.groups == {'ungrouped': [4, 5, 0, 1, 2, 3]}
+
+    ungroup([5, 6], None, newtable)
+    assert newtable.groups == {'ungrouped': [0, 1, 2, 3, 4, 5]}
+
+
+def test_parsed_ungroup():
+    table = get_test_data()
+
+    group([1, 2, 3, 4], 'scout', table)
+    operator, g, arg = get_statement('ungroup 1:4')
+    fn = word2fn(operator)
+    fn(g, arg, table)
+    assert table.groups == {'ungrouped': [4, 5, 0, 1, 2, 3]}
+
+    group([5, 6], 'rpe', table)
+    operator, g, arg = get_statement('ungroup 5:6')
+    fn = word2fn(operator)
+    fn(g, arg, table)
+    assert table.groups == {'ungrouped': [0, 1, 2, 3, 4, 5]}
+
+
 def test_word2op():
     assert word2op('q') == Operators.QUIT
     assert word2op('quit') == Operators.QUIT

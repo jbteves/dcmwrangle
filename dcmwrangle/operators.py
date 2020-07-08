@@ -9,13 +9,15 @@ from dcmwrangle.dcmtable import dcmtable
 
 class Operators(Enum):
     QUIT = 0,
-    GROUP = 1
+    GROUP = 1,
+    UNGROUP = 2
 
 
 optable = {'q': Operators.QUIT,
            'quit': Operators.QUIT,
            'g': Operators.GROUP,
-           'group': Operators.GROUP}
+           'group': Operators.GROUP,
+           'ungroup': Operators.UNGROUP}
 
 def halt(group, arg, table):
     """Halts execution of a program.
@@ -90,8 +92,39 @@ def group(g, arg, table):
             table.groups[arg].append(idx)
 
 
+def ungroup(g, arg, table):
+    """Ungroups a dcmtable's series.
+
+    Parameters
+    ----------
+    g : list
+        The series group.
+    arg : None
+        Should be None
+    table : dcmtable
+        The dcmtable you'd like to modify
+
+    Raises
+    ------
+    TypeError
+        If the specified types are not matched.
+    ValueError
+        If the series group is outside of the range of the table.
+    """
+    if not isinstance(g, list):
+        raise TypeError('Series group must be list, is of type '
+                        '{0}'.format(str(type(g))))
+    if arg:
+        raise TypeError('Ungroup cannnot take argument')
+    if not isinstance(table, dcmtable):
+        raise TypeError('Table must be dcmtable, is of type '
+                        '{0}'.format(str(type(arg))))
+
+    group(g, 'ungrouped', table)
+
 fptable = {Operators.QUIT: halt,
-           Operators.GROUP: group}
+           Operators.GROUP: group,
+           Operators.UNGROUP: ungroup}
 
 def word2op(word):
     """Looks up the operator from a word.
