@@ -107,8 +107,8 @@ def get_srange(word):
         raise ValueError('Too many numbers for one word')
 
 
-def get_group(wordlist):
-    """Gets a list of numbers from a group wordlist and modifies wordlist.
+def get_domain(wordlist):
+    """Gets a list of numbers from a domain wordlist and modifies wordlist.
 
     Parameters
     ----------
@@ -117,8 +117,8 @@ def get_group(wordlist):
 
     Returns
     -------
-    group : list
-        A list of numbers in the group.
+    domain : list
+        A list of numbers in the domain.
     wordlist : list
         The revised wordlist
 
@@ -127,7 +127,7 @@ def get_group(wordlist):
     TypeError
         If the wordlist is not a list.
     ValueError
-        If the wordlist does not make a valid group.
+        If the wordlist does not make a valid domain.
 
     Notes
     -----
@@ -147,38 +147,38 @@ def get_group(wordlist):
             if (lbracket == -1):
                 lbracket = i 
             else:
-                raise ValueError('Can only have one grouping')
+                raise ValueError('Can only have one domain')
         elif inwords[i] == ']':
             if (rbracket == -1):
                 rbracket = i 
             else:
-                raise ValueError('Can only have one grouping')
+                raise ValueError('Can only have one domain')
 
     if (rbracket < lbracket) or (lbracket >= 0 and rbracket < 0): 
         raise ValueError('Unmatched bracket')
 
     if (lbracket == -1) and (rbracket == -1):
-        # Determine if group or command
+        # Determine if domain or command
         c = inwords[0]
         if c.isnumeric():
-            # Group should only be the first word in this case
-            group = get_srange(wordlist[0])
+            # Domain should only be the first word in this case
+            domain = get_srange(wordlist[0])
             wordlist = wordlist[1:]
-            return group, wordlist
+            return domain, wordlist
         else:
             return None, wordlist
 
     if lbracket != 0:
-        raise ValueError('Brackets should begin groups')
+        raise ValueError('Brackets should begin domains')
     inwords = inwords[1:rbracket]
     srange_words = inwords.split(' ')
-    group = []
+    domain = []
     for w in srange_words:
         sr = get_srange(w)
         for x in sr: 
-            group.append(x)
+            domain.append(x)
 
-    group = list(set(group))
+    domain = list(set(domain))
     # Find the location of the rbracket
     rword = 0 
     for i in range(len(wordlist)):
@@ -186,7 +186,7 @@ def get_group(wordlist):
             rword = i 
 
     wordlist = wordlist[rword + 1:] 
-    return group, wordlist
+    return domain, wordlist
 
 
 def get_statement(user_input, pad=None):
@@ -203,7 +203,7 @@ def get_statement(user_input, pad=None):
     -------
     operator : str
         The operator to use.
-    group : list
+    domain : list
         A list of the numbers of interest.
     argument : str
         The argument to the operator.
@@ -230,7 +230,7 @@ def get_statement(user_input, pad=None):
     input_arguments = input_words[1:]
 
     # Check to make sure that each non-operator word is valid
-    group, input_arguments = get_group(input_arguments)
+    domain, input_arguments = get_domain(input_arguments)
     argument = get_argument(input_arguments)
 
-    return operator, group, argument
+    return operator, domain, argument

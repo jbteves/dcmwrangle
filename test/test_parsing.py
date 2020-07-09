@@ -48,43 +48,43 @@ def test_get_srange():
         get_srange('-1:2')
 
 
-def test_get_group():
-    """Tests to make sure get_group gets correct numerical groups."""
-    g, w = get_group(['1:3', 'aardvark'])
+def test_get_domain():
+    """Tests to make sure get_domain gets correct numerical domains."""
+    g, w = get_domain(['1:3', 'aardvark'])
     assert g == [1, 2, 3]
     assert w == ['aardvark']
-    g, w = get_group(['[1', '2', '3]', 'aardvark'])
+    g, w = get_domain(['[1', '2', '3]', 'aardvark'])
     assert g == [1, 2, 3]
     assert w == ['aardvark']
-    g, w = get_group(['1:3'])
+    g, w = get_domain(['1:3'])
     assert g == [1, 2, 3]
-    g, w = get_group(['[3:1', '5', '7]'])
+    g, w = get_domain(['[3:1', '5', '7]'])
     assert g == [1, 2, 3, 5, 7]
-    g, w = get_group([])
+    g, w = get_domain([])
     assert g is None
     with pytest.raises(ValueError):
-        get_group(['['])
+        get_domain(['['])
     with pytest.raises(ValueError):
-        get_group('')
+        get_domain('')
     with pytest.raises(ValueError):
-        get_group(None)
+        get_domain(None)
     with pytest.raises(ValueError):
-        get_group(['[1', '2'])
+        get_domain(['[1', '2'])
 
 
 def test_get_statement():
     """Tests to make sure we correctly parse statements."""
-    operator, group, arg = get_statement('q')
+    operator, domain, arg = get_statement('q')
     assert operator == 'q'
-    assert group is None
+    assert domain is None
     assert arg is None
 
-    operator, group, arg = get_statement('q [1 2 3] boo')
+    operator, domain, arg = get_statement('q [1 2 3] boo')
     assert operator == 'q'
-    assert group == [1, 2, 3]
+    assert domain == [1, 2, 3]
     assert arg == 'boo'
 
-    operator, group, arg = get_statement('q boo')
+    operator, domain, arg = get_statement('q boo')
     assert operator == 'q'
-    assert group is None
+    assert domain is None
     assert arg == 'boo'
