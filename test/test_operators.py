@@ -6,6 +6,7 @@ from test_dcmtable import get_test_data
 
 from dcmwrangle.parsing import *
 from dcmwrangle.operators import *
+from dcmwrangle.util import process_statement
 
 
 def test_halt():
@@ -59,9 +60,7 @@ def test_group():
 
 def test_parsed_group():
     table = get_test_data()
-    operator, group, arg = get_statement('group 1:4 scout')
-    fn = word2fn(operator)
-    fn(group, arg, table)
+    process_statement('group 1:4 scout', table)
     assert table.groups == {'ungrouped': [4, 5], 'scout': [0, 1, 2, 3]}
 
 
@@ -85,15 +84,11 @@ def test_parsed_ungroup():
     table = get_test_data()
 
     group([1, 2, 3, 4], 'scout', table)
-    operator, g, arg = get_statement('ungroup 1:4')
-    fn = word2fn(operator)
-    fn(g, arg, table)
+    process_statement('ungroup 1:4', table)
     assert table.groups == {'ungrouped': [4, 5, 0, 1, 2, 3]}
 
     group([5, 6], 'rpe', table)
-    operator, g, arg = get_statement('ungroup 5:6')
-    fn = word2fn(operator)
-    fn(g, arg, table)
+    process_statement('ungroup 5:6', table)
     assert table.groups == {'ungrouped': [0, 1, 2, 3, 4, 5]}
 
 

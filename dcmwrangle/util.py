@@ -1,6 +1,11 @@
 #!/usr/bin/env python
 # -*- coding : utf-8 -*-
 
+import sys
+
+from dcmwrangle import dcmtable
+from dcmwrangle.parsing import *
+from dcmwrangle import operators
 
 def group_key_att(indict, attribute, subset=None, sort=True):
     """Group keys by the attribute, sorting the attribute
@@ -131,3 +136,36 @@ def group_key_val(indict, attribute, target_value, subset=None):
             total_matches += 1
 
     return matching_keys[0:total_matches]
+
+
+def process_statement(statement, table):
+    """Process a statement.
+
+    Parameters
+    ----------
+    statement : str
+        A statement to be processed.
+    table : dcmtable
+        A dcmtable to apply the statement to.
+
+    Raises
+    ------
+    TypeError
+        If the parameters are of incorrect type.
+    ValueError
+        If the statement is invalid or attempts to acccess a nonexistent
+        series.
+    """
+
+    if not isinstance(statement, str):
+        raise TypeError('Statements must be of type str, is of type '
+                        '{0}'.format(str(type(statement))))
+    if not isinstance(table, dcmtable.dcmtable):
+        raise TypeError('Tables must be of type dcmtable, is of type '
+                        '{0}'.format(str(type(statement))))
+    operator, group, arg = get_statement(statement)
+    for m in sys.modules:
+        if 'op' in m:
+            print(m)
+    fn = operators.word2fn(operator)
+    fn(group, arg, table)

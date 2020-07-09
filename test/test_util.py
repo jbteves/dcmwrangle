@@ -4,6 +4,7 @@
 import pytest
 
 from dcmwrangle.util import *
+from test_dcmtable import get_test_data
 
 
 class Point:
@@ -204,3 +205,11 @@ def test_group_key_value():
     matches_y_subset = group_key_val(testdict, 'y', 3,
                                      subset=['cat', 'dog'])
     assert matches_x_subset == []
+
+
+def test_process_statement():
+    """Tests processing statements."""
+    table = get_test_data()
+    statement = 'group 1:4 scout'
+    process_statement(statement, table)
+    assert table.groups == {'ungrouped': [4, 5], 'scout': [0, 1, 2, 3]}
