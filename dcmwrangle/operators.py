@@ -19,12 +19,12 @@ optable = {'q': Operators.QUIT,
            'group': Operators.GROUP,
            'ungroup': Operators.UNGROUP}
 
-def halt(group, arg, table):
+def halt(domain, arg, table):
     """Halts execution of a program.
 
     Parameters
     ----------
-    group
+    domain
         Should not pass this.
     arg
         Should not pass this.
@@ -36,19 +36,19 @@ def halt(group, arg, table):
     ValueError
         If you the first two pass arguments anyway.
     """
-    if group is not None:
+    if domain is not None:
         raise ValueError('Quit does not take a group')
     if arg is not None:
         raise ValueError('Quit does not take arguments')
     sys.exit()
 
-def group(g, arg, table):
+def group(domain, arg, table):
     """Groups a dcmtable's series.
 
     Parameters
     ----------
-    g : list
-        The series group.
+    domain : list
+        The series domain.
     arg : str
         The name of the group you'd like to make.
     table : dcmtable
@@ -59,11 +59,11 @@ def group(g, arg, table):
     TypeError
         If the specified types are not matched.
     ValueError
-        If the series group is outside of the range of the table.
+        If the series domain is outside of the range of the table.
     """
-    if not isinstance(g, list):
+    if not isinstance(domain, list):
         raise TypeError('Series group must be list, is of type '
-                        '{0}'.format(str(type(g))))
+                        '{0}'.format(str(type(domain))))
     if not isinstance(arg, str):
         raise TypeError('Group name must be str, is of type '
                         '{0}'.format(str(type(arg))))
@@ -72,13 +72,13 @@ def group(g, arg, table):
                         '{0}'.format(str(type(arg))))
 
     indices = []
-    for s in g:
+    for s in domain:
         indices.append(table.number2idx(s))
     for g in table.groups:
-        group_indices = table.groups[g]
+        domain_indices = table.groups[g]
         for i in indices:
-            if i in group_indices:
-                group_indices.remove(i)
+            if i in domain_indices:
+                domain_indices.remove(i)
     emptygroups = []
     for g in table.groups:
         if not table.groups[g]:
@@ -92,13 +92,13 @@ def group(g, arg, table):
             table.groups[arg].append(idx)
 
 
-def ungroup(g, arg, table):
+def ungroup(domain, arg, table):
     """Ungroups a dcmtable's series.
 
     Parameters
     ----------
-    g : list
-        The series group.
+    domain : list
+        The series domain.
     arg : None
         Should be None
     table : dcmtable
@@ -109,18 +109,19 @@ def ungroup(g, arg, table):
     TypeError
         If the specified types are not matched.
     ValueError
-        If the series group is outside of the range of the table.
+        If the series domain is outside of the range of the table.
     """
-    if not isinstance(g, list):
+    if not isinstance(domain, list):
         raise TypeError('Series group must be list, is of type '
-                        '{0}'.format(str(type(g))))
+                        '{0}'.format(str(type(domain))))
     if arg:
         raise TypeError('Ungroup cannnot take argument')
     if not isinstance(table, dcmtable):
         raise TypeError('Table must be dcmtable, is of type '
                         '{0}'.format(str(type(arg))))
 
-    group(g, 'ungrouped', table)
+    group(domain, 'ungrouped', table)
+
 
 fptable = {Operators.QUIT: halt,
            Operators.GROUP: group,
