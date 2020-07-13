@@ -136,7 +136,7 @@ class dcmtable:
             for i in range(len(self.groups[g])):
                 idx = self.groups[g][i]
                 hdr = self.table[self.files[idx][0]]
-                name = getattr(hdr, 'SeriesDescription')
+                name = self.names[idx]
                 time = getattr(hdr, 'SeriesTime')
                 if len(self.echoes[idx]) == 1:
                     echo = 'SE'

@@ -110,6 +110,38 @@ def test_parsed_ignore():
     assert table.groups == {'ungrouped': [4, 5], 'ignored': [0, 1, 2, 3]}
 
 
+def test_rename():
+    table = get_test_data()
+    rename([1], 'useless', table)
+    rename([2], 'sag_useless', table)
+    rename([3], 'cor_useless', table)
+    rename([4], 'tra_useless', table)
+    assert table.names == ['useless', 'sag_useless', 'cor_useless',
+                           'tra_useless', 'MBME_RPE1_TMS_SBRef',
+                           'MBME_RPE1_TMS']
+    rename([5], 'rpe_sbref', table)
+    rename([6], 'rpe', table)
+    assert table.names == ['useless', 'sag_useless', 'cor_useless',
+                           'tra_useless', 'rpe_sbref', 'rpe']
+
+    with pytest.raises(ValueError):
+        rename([0, 1], 'run', table)
+    with pytest.raises(ValueError):
+        rename([7], 'run', table)
+    with pytest.raises(TypeError):
+        rename(None, 'run', table)
+    with pytest.raises(TypeError):
+        rename([7], None, table)
+    with pytest.raises(TypeError):
+        rename([7], 'run', None)
+
+
+def test_parsed_rename():
+    table = get_test_data()
+    process_statement('rename 1 scout', table)
+    assert table.names[0] == 'scout'
+
+
 def test_word2op():
     assert word2op('q') == Operators.QUIT
     assert word2op('quit') == Operators.QUIT

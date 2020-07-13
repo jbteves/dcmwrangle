@@ -190,6 +190,32 @@ def test_dcmtable_str():
     # Join all sections
     finalstr = '\n'.join(allparts)
 
+    # Try renamed
+    table.groups = {'tms': [4, 5]}
+    table.names[4] = 'rpe_sbref'
+    table.names[5] = 'rpe'
+    style = '{:3d}\t{:35s}\t{:15}\t{:5d}\t{:2s}'
+    pathstr = [colors.green('Dicom files at {0}'.format(path))]
+    allparts = pathstr
+    allparts += [colors.magenta('tms:')]
+    stringparts = ['' for i in range(len(table.groups['tms']))]
+    for i in range(len(table.groups['tms'])):
+        idx = table.groups['tms'][i]
+        hdr = table.table[table.files[idx][0]]
+        name = table.names[idx]
+        time = getattr(hdr, 'SeriesTime')
+        if len(table.echoes[idx]) == 1:
+            echo = 'SE'
+            color = colors.blue
+        else:
+            echo = 'ME'
+            color = colors.cyan
+        nfiles = len(table.files[idx])
+        stringparts[i] = color(style.format(idx + 1, name, time, nfiles,
+                               echo))
+    allparts += stringparts
+    # Join all sections
+    finalstr = '\n'.join(allparts)
     print(colors.red('Table:'))
     print(table)
     print(colors.red('Test:'))

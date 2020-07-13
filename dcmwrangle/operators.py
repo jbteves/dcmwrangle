@@ -12,6 +12,7 @@ class Operators(Enum):
     GROUP = 1,
     UNGROUP = 2
     IGNORE = 3
+    RENAME = 4
 
 
 optable = {'q': Operators.QUIT,
@@ -20,7 +21,8 @@ optable = {'q': Operators.QUIT,
            'group': Operators.GROUP,
            'ungroup': Operators.UNGROUP,
            'i': Operators.IGNORE,
-           'ignore': Operators.IGNORE}
+           'ignore': Operators.IGNORE,
+           'rename': Operators.RENAME}
 
 def halt(domain, arg, table):
     """Halts execution of a program.
@@ -157,10 +159,45 @@ def ignore(domain, arg, table):
     group(domain, 'ignored', table)
 
 
+def rename(domain, arg, table):
+    """Ignores a dcmtable's series.
+
+    Parameters
+    ----------
+    domain : list
+        The series domain.
+    arg : None
+        Should be None
+    table : dcmtable
+        The dcmtable you'd like to modify
+
+    Raises
+    ------
+    TypeError
+        If the specified types are not matched.
+    ValueError
+        If the series domain is outside of the range of the table, or if
+        the domain is non-singular.
+    """
+    if not isinstance(domain, list):
+        raise TypeError('Series group must be list, is of type '
+                        '{0}'.format(str(type(domain))))
+        if not len(domain) == 1:
+            raise ValueError('Rename can only name one series at a time.')
+    if not isinstance(arg, str):
+        raise TypeError('Rename must take argument')
+    if not isinstance(table, dcmtable):
+        raise TypeError('Table must be dcmtable, is of type '
+                        '{0}'.format(str(type(arg))))
+    idx = table.number2idx(domain[0])
+    table.names[idx] = arg
+
+
 fptable = {Operators.QUIT: halt,
            Operators.GROUP: group,
            Operators.UNGROUP: ungroup,
-           Operators.IGNORE: ignore}
+           Operators.IGNORE: ignore,
+           Operators.RENAME: rename}
 
 def word2op(word):
     """Looks up the operator from a word.
