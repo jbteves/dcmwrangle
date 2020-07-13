@@ -92,6 +92,24 @@ def test_parsed_ungroup():
     assert table.groups == {'ungrouped': [0, 1, 2, 3, 4, 5]}
 
 
+def test_ignore():
+    table = get_test_data()
+    with pytest.raises(TypeError):
+        ignore(None, None, table)
+    with pytest.raises(TypeError):
+        ignore([1], 1, table)
+    with pytest.raises(TypeError):
+        ignore([1], None, None)
+    ignore([1, 2, 3, 4], None, table)
+    assert table.groups == {'ungrouped': [4, 5], 'ignored': [0, 1, 2, 3]}
+
+
+def test_parsed_ignore():
+    table = get_test_data()
+    process_statement('ignore 1:4', table)
+    assert table.groups == {'ungrouped': [4, 5], 'ignored': [0, 1, 2, 3]}
+
+
 def test_word2op():
     assert word2op('q') == Operators.QUIT
     assert word2op('quit') == Operators.QUIT

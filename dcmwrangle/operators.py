@@ -11,13 +11,16 @@ class Operators(Enum):
     QUIT = 0,
     GROUP = 1,
     UNGROUP = 2
+    IGNORE = 3
 
 
 optable = {'q': Operators.QUIT,
            'quit': Operators.QUIT,
            'g': Operators.GROUP,
            'group': Operators.GROUP,
-           'ungroup': Operators.UNGROUP}
+           'ungroup': Operators.UNGROUP,
+           'i': Operators.IGNORE,
+           'ignore': Operators.IGNORE}
 
 def halt(domain, arg, table):
     """Halts execution of a program.
@@ -41,6 +44,7 @@ def halt(domain, arg, table):
     if arg is not None:
         raise ValueError('Quit does not take arguments')
     sys.exit()
+
 
 def group(domain, arg, table):
     """Groups a dcmtable's series.
@@ -123,9 +127,40 @@ def ungroup(domain, arg, table):
     group(domain, 'ungrouped', table)
 
 
+def ignore(domain, arg, table):
+    """Ignores a dcmtable's series.
+
+    Parameters
+    ----------
+    domain : list
+        The series domain.
+    arg : None
+        Should be None
+    table : dcmtable
+        The dcmtable you'd like to modify
+
+    Raises
+    ------
+    TypeError
+        If the specified types are not matched.
+    ValueError
+        If the series domain is outside of the range of the table.
+    """
+    if not isinstance(domain, list):
+        raise TypeError('Series group must be list, is of type '
+                        '{0}'.format(str(type(domain))))
+    if arg:
+        raise TypeError('Ungroup cannnot take argument')
+    if not isinstance(table, dcmtable):
+        raise TypeError('Table must be dcmtable, is of type '
+                        '{0}'.format(str(type(arg))))
+    group(domain, 'ignored', table)
+
+
 fptable = {Operators.QUIT: halt,
            Operators.GROUP: group,
-           Operators.UNGROUP: ungroup}
+           Operators.UNGROUP: ungroup,
+           Operators.IGNORE: ignore}
 
 def word2op(word):
     """Looks up the operator from a word.

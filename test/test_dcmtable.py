@@ -137,6 +137,7 @@ def test_dcmtable_str():
     table.groups = {'scout': [0, 1, 2, 3], 'tms': [4, 5]}
     groups = ['scout', 'tms']
     style = '{:3d}\t{:35s}\t{:15}\t{:5d}\t{:2s}'
+    pathstr = [colors.green('Dicom files at {0}'.format(path))]
     allparts = pathstr
 
     for g in groups:
@@ -158,6 +159,35 @@ def test_dcmtable_str():
                                    echo))
         allparts += stringparts
     # Join all ports
+    finalstr = '\n'.join(allparts)
+    assert table.__str__() == finalstr
+
+    # Try an ignored group
+    table.groups = {'scout': [0], 'ignored': [1, 2, 3], 'tms': [4, 5]}
+    groups = ['scout', 'tms']
+    style = '{:3d}\t{:35s}\t{:15}\t{:5d}\t{:2s}'
+    pathstr = [colors.green('Dicom files at {0}'.format(path))]
+    allparts = pathstr
+
+    for g in groups:
+        allparts += [colors.magenta(g + ':')]
+        stringparts = ['' for i in range(len(table.groups[g]))]
+        for i in range(len(table.groups[g])):
+            idx = table.groups[g][i]
+            hdr = table.table[table.files[idx][0]]
+            name = getattr(hdr, 'SeriesDescription')
+            time = getattr(hdr, 'SeriesTime')
+            if len(table.echoes[idx]) == 1:
+                echo = 'SE'
+                color = colors.blue
+            else:
+                echo = 'ME'
+                color = colors.cyan
+            nfiles = len(table.files[idx])
+            stringparts[i] = color(style.format(idx + 1, name, time, nfiles,
+                                   echo))
+        allparts += stringparts
+    # Join all sections
     finalstr = '\n'.join(allparts)
 
     print(colors.red('Table:'))

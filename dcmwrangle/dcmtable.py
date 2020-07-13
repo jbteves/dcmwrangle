@@ -129,6 +129,8 @@ class dcmtable:
         allparts = [colors.green('Dicom files at {0}'.format(self.path))]
         style = '{:3d}\t{:35s}\t{:15}\t{:5d}\t{:2s}'
         for g in self.groups:
+            if g == 'ignored':
+                continue
             allparts += [colors.magenta('{0}:'.format(g))]
             stringparts = ['' for i in range(len(self.groups[g]))]
             for i in range(len(self.groups[g])):
