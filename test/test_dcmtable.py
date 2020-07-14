@@ -61,6 +61,20 @@ def test_build_from_dcmtable():
     assert table.groups == {'ungrouped': [0, 1, 2, 3, 4, 5]}
 
 
+def test_build_from_dcmtable_linked():
+    table = get_test_data()
+    table2 = dcmtable(table)
+    assert table.next == table2
+    assert table2.prev == table
+
+
+def test_build_from_dcmtable_unlinked():
+    table = get_test_data()
+    table2 = dcmtable(table, link=False)
+    assert table.prev == table2.prev
+    assert table.next == table2.next
+
+
 def test_dcmtable_group_info():
     table = get_test_data()
     assert table.groups == {'ungrouped': [0, 1, 2, 3, 4, 5]}

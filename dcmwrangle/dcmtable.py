@@ -32,9 +32,13 @@ class dcmtable:
         A list indicating the files associated with each series number.
     echoes: list
         A list indicating the echo times for each series.
+    prev : dcmtable
+        The previous dcmtable
+    next : dcmtable
+        The next dcmtable
     """
 
-    def __init__(self, basis):
+    def __init__(self, basis, link=True):
         """Constructor for dcmtable
 
         Parameters
@@ -42,6 +46,8 @@ class dcmtable:
         basis : str
             A string indicating where the dicom files are that this table
             should build from.
+        link : bool
+            Whether the new table should be linked to the old.
 
         Raises
         ------
@@ -95,6 +101,10 @@ class dcmtable:
 
             # Create the common group
             self.groups = {'ungrouped': [i for i in range(len(self.numbers))]}
+
+            # Links to other tables
+            self.prev = None
+            self.next = None
         elif isinstance(basis, dcmtable):
             self.path = basis.path
             self.table = basis.table
@@ -103,6 +113,12 @@ class dcmtable:
             self.names = deepcopy(basis.names)
             self.echoes = deepcopy(basis.echoes)
             self.groups = deepcopy(basis.groups)
+            if link:
+                self.prev = basis
+                basis.next = self
+            else:
+                self.prev = basis.prev
+                self.next = basis.next
         else:
             thistype = type(basis)
             raise TypeError('basis must be str or dcmtable, '
