@@ -10,9 +10,10 @@ from dcmwrangle.dcmtable import dcmtable
 class Operators(Enum):
     QUIT = 0,
     GROUP = 1,
-    UNGROUP = 2
-    IGNORE = 3
-    RENAME = 4
+    UNGROUP = 2,
+    IGNORE = 3,
+    RENAME = 4,
+    SHOW = 5
 
 
 optable = {'q': Operators.QUIT,
@@ -22,7 +23,8 @@ optable = {'q': Operators.QUIT,
            'ungroup': Operators.UNGROUP,
            'i': Operators.IGNORE,
            'ignore': Operators.IGNORE,
-           'rename': Operators.RENAME}
+           'rename': Operators.RENAME,
+           'show': Operators.SHOW}
 
 def halt(domain, arg, table):
     """Halts execution of a program.
@@ -160,12 +162,12 @@ def ignore(domain, arg, table):
 
 
 def rename(domain, arg, table):
-    """Ignores a dcmtable's series.
+    """Renames a dcmtable's series
 
     Parameters
     ----------
     domain : list
-        The series domain.
+        The series domain, should be singleton.
     arg : None
         Should be None
     table : dcmtable
@@ -193,11 +195,53 @@ def rename(domain, arg, table):
     table.names[idx] = arg
 
 
+def show(domain, arg, table):
+    """Print contents to stdout which are hidden.
+
+    Parameters
+    ----------
+    domain : list
+        Should not be passed.
+    arg : str
+        Should indicate what should be shown. Allowed: ignored
+    table : dcmtable
+        The dcmtable for which we're examining information
+
+    Raises
+    ------
+    TypeError
+        If the specified types are not matched.
+    ValueError
+        If the domain is supplied or the argument is not one of the
+        allowed ones.
+    """
+    if domain:
+        raise ValueError('Show does not take a domain.')
+    if not isinstance(arg, str):
+        raise TypeError('Show must take argument')
+    if not isinstance(table, dcmtable):
+        raise TypeError('Table must be dcmtable, is of type '
+                        '{0}'.format(str(type(arg))))
+
+    if arg == 'ignored':
+        # Show ignored data
+        if 'ignored' not in table.groups:
+            print('No series are ignored.')
+        else:
+            for idx in table.groups['ignored']:
+                print(table.series_string(idx))
+    if not arg == 'ignored':
+        raise ValueError('Cannot show data {0}'.format(arg))
+
+
+
+
 fptable = {Operators.QUIT: halt,
            Operators.GROUP: group,
            Operators.UNGROUP: ungroup,
            Operators.IGNORE: ignore,
-           Operators.RENAME: rename}
+           Operators.RENAME: rename,
+           Operators.SHOW: show}
 
 def word2op(word):
     """Looks up the operator from a word.

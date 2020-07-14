@@ -7,6 +7,7 @@ from test_dcmtable import get_test_data
 from dcmwrangle.parsing import *
 from dcmwrangle.operators import *
 from dcmwrangle.util import process_statement
+from dcmwrangle import colors
 
 
 def test_halt():
@@ -140,6 +141,33 @@ def test_parsed_rename():
     table = get_test_data()
     process_statement('rename 1 scout', table)
     assert table.names[0] == 'scout'
+
+
+def test_show_ignored(capfd):
+    table = get_test_data()
+    show(None, 'ignored', table)
+    out, err = capfd.readouterr()
+    assert out == 'No series are ignored.\n'
+
+    table.groups = {'ungrouped': [1, 2, 3, 4, 5], 'ignored': [0]}
+    show(None, 'ignored', table)
+    out, err = capfd.readouterr()
+    assert out == (table.series_string(0) + '\n')
+
+    with pytest.raises(ValueError):
+        show([1], 'ignored', table)
+    with pytest.raises(TypeError):
+        show(None, None, table)
+    with pytest.raises(TypeError):
+        show(None, 'ignored', None)
+
+
+def test_parsed_show_ignored(capfd):
+    table = get_test_data()
+    table.groups = {'ungrouped': [1, 2, 3, 4, 5], 'ignored': [0]}
+    process_statement('show ignored', table)
+    out, err = capfd.readouterr()
+    assert out == (table.series_string(0) + '\n')
 
 
 def test_word2op():

@@ -164,8 +164,5 @@ def process_statement(statement, table):
         raise TypeError('Tables must be of type dcmtable, is of type '
                         '{0}'.format(str(type(statement))))
     operator, group, arg = get_statement(statement)
-    for m in sys.modules:
-        if 'op' in m:
-            print(m)
     fn = operators.word2fn(operator)
     fn(group, arg, table)

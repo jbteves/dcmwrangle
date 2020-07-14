@@ -130,7 +130,6 @@ def test_dcmtable_str():
     # Join all ports
     allparts = pathstr + group + stringparts
     finalstr = '\n'.join(allparts)
-
     assert table.__str__() == finalstr
 
     # Try grouping so that we can test appearance for grouping
@@ -160,6 +159,10 @@ def test_dcmtable_str():
         allparts += stringparts
     # Join all ports
     finalstr = '\n'.join(allparts)
+    print(colors.red('Table:'))
+    print(table)
+    print(colors.red('Test:'))
+    print(finalstr)
     assert table.__str__() == finalstr
 
     # Try an ignored group

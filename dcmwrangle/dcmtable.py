@@ -125,6 +125,34 @@ class dcmtable:
             raise ValueError('Series {0} not in table.'.format(number))
         return self.numbers.index(number)
 
+
+    def series_string(self, idx):
+        """Returns a colored string indicating the series information.
+
+        Parameters
+        ----------
+        idx : int
+            The index to get the string for
+
+        Raises
+        ------
+        ValueError
+            If the index is out of bounds.
+        """
+        style = '{:3d}\t{:35s}\t{:15}\t{:5d}\t{:2s}'
+        hdr = self.table[self.files[idx][0]]
+        name = self.names[idx]
+        time = getattr(hdr, 'SeriesTime')
+        if len(self.echoes[idx]) == 1:
+            echo = 'SE'
+            color = colors.blue
+        else:
+            echo = 'ME'
+            color = colors.cyan
+        nfiles = len(self.files[idx])
+        return color(style.format(self.numbers[idx], name, time, nfiles,
+                     echo)) 
+
     def __str__(self):
         allparts = [colors.green('Dicom files at {0}'.format(self.path))]
         style = '{:3d}\t{:35s}\t{:15}\t{:5d}\t{:2s}'
@@ -135,18 +163,7 @@ class dcmtable:
             stringparts = ['' for i in range(len(self.groups[g]))]
             for i in range(len(self.groups[g])):
                 idx = self.groups[g][i]
-                hdr = self.table[self.files[idx][0]]
-                name = self.names[idx]
-                time = getattr(hdr, 'SeriesTime')
-                if len(self.echoes[idx]) == 1:
-                    echo = 'SE'
-                    color = colors.blue
-                else:
-                    echo = 'ME'
-                    color = colors.cyan
-                nfiles = len(self.files[idx])
-                stringparts[i] = color(style.format(self.numbers[idx],
-                                       name, time, nfiles, echo))
+                stringparts[i] = self.series_string(idx)
             allparts += stringparts
         finalstr = '\n'.join(allparts)
 
